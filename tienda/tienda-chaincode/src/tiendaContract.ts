@@ -37,7 +37,7 @@ class TiendaContract extends Contract {
     id: string,
     name: string
   ) {
-    /* if (!ALLOWED_MSPS_CREAR_PRODUCTOS.includes(ctx.clientIdentity.getMSPID())) { // supprimer
+    /* if (!ALLOWED_MSPS_CREAR_PRODUCTOS.includes(ctx.clientIdentity.getMSPID())) { // vérifier getmyID() = name ?
       throw new Error("No tienes permiso para crear productos");
     } */
     const merchantKey = ctx.stub.createCompositeKey(merchantPrefix, [id]);
