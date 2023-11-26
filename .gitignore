@@ -1,0 +1,9 @@
+*.yaml
+tienda/tienda-express/node_modules
+tienda/tienda-chaincode/node_modules
+tienda/tienda-chaincode/dist
+tienda/tienda-chaincode/chaincode.tgz
+tienda/tienda-chaincode/code.tar.gz
+tienda/tienda-chaincode/connection.json
+tienda/tienda-chaincode/metadata.json
+tienda/tienda-api/node_modules

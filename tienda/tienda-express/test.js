@@ -1,0 +1,1 @@
+fetch('http://localhost:3003/ping').then(res => res.text()).then(res => console.log(res))
