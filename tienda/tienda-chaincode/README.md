@@ -48,8 +48,8 @@ kubectl hlf chaincode install --path=./chaincode.tgz \
 ## Aprobar chaincode
 ```bash
 export CHAINCODE_NAME=tienda-dev
-export SEQUENCE=1 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
-export VERSION="1.0" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
+export SEQUENCE=2 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
+export VERSION="1.1" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
 kubectl hlf chaincode approveformyorg --config=${CP_FILE} --user=admin --peer=org2-peer0.tienda \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name="${CHAINCODE_NAME}" \
@@ -88,7 +88,7 @@ npm run chaincode:start
 ```bash
 export CP_FILE=$PWD/../../tienda.yaml
 kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.tienda \
+    --user=userB-org2 --peer=org2-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=Ping
 ```
@@ -133,7 +133,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org2 --peer=org2-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=addCustomer \
-     -a 'customerTest2' 
+     -a 'customerTest' 
 ```
 
 ### consulter customer
@@ -156,11 +156,10 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
 ### Créer merchant
 ```bash
 kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org2 --peer=org2-peer0.tienda \
+    --user=user-org1 --peer=org1-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=addMerchant \
-     -a 'merchant2Id' \
-     -a 'merchant2Test' 
+     -a 'merchantTest' 
 ```
 
 ### consulter merchant
@@ -169,7 +168,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org1 --peer=org1-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=getMerchant \
-     -a 'merchantId' 
+     -a 'merchant2Id' 
 ```
 
 ### get all merchants
@@ -178,6 +177,45 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org1 --peer=org1-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=getMerchantList 
+```
+
+### add Product
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=addProduct \
+     -a 'prod1' \
+     -a 'producto test 1' \
+     -a '18'
+```
+
+### get my Product
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=getMyProductList
+```
+
+### add Invoice
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org2 --peer=org2-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=addInvoice \
+     -a 'x509::/OU=client/CN=client-org1::/C=ES/L=Alicante/=Alicante/O=Kung Fu Software/OU=Tech/CN=ca' \
+     -a 'prod1' \
+     -a '2'
+```
+
+### get Invoice
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org2 --peer=org2-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=getInvoice \
+     -a '1'
 ```
 
 ### limpiar chaincode

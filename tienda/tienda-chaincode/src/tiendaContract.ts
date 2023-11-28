@@ -9,7 +9,10 @@ const { Contract } = require("fabric-contract-api");
 // Definir nombres de tipo de objeto para el prefijo
 const customerPrefix = "customer";
 const merchantPrefix = "merchant";
-const lastInvoiceNumberPrefix = "lastInvoice"
+const lastInvoiceNumberPrefix = "lastInvoice";
+const productPrefix = "product";
+const invoiceDetailPrefix = "invoiceDetail";
+const invoicePrefix = "invoice"
 const orderPrefix = "order";
 const orderDetailPrefix = "orderDetail";
 
@@ -17,8 +20,8 @@ const tslog = require("tslog");
 const log = new tslog.Logger({});
 
 
-//const ALLOWED_MSPS_CREAR_PRODUCTOS = ["SonyMSP"]; // à supprimer
-//const ALLOWED_MSPS_COMPRAR = ["MarketplaceMSP"]; // à supprimer
+const ALLOWED_MSPS_MERCHANT = ["Org1MSP"];
+const ALLOWED_MSPS_CLIENT = ["Org2MSP"];
 
 class TiendaContract extends Contract {
   async getMyIdentity(ctx: Context) {
@@ -35,109 +38,84 @@ class TiendaContract extends Contract {
 
   async Init(ctx: Context) { // verificar
     const checkLastInvoiceNumber=await ctx.stub.getState(lastInvoiceNumberPrefix)
-    if (checkLastInvoiceNumber != null) {
+    if (checkLastInvoiceNumber.toString() ) {
       throw new Error("Chaincode ya initializado")
     }
-    //const lastInvoiceNumberKey = ctx.stub.createCompositeKey(lastInvoiceNumberPrefix)
     const lastInvoiceNumber = {
       number: 0
     }
     await ctx.stub.putState(lastInvoiceNumberPrefix, Buffer.from(JSON.stringify(lastInvoiceNumber)))
   }
 
+  async getLastInvoiceNumber (ctx: Context) {
+    const lastInvoiceNumber=await ctx.stub.getState(lastInvoiceNumberPrefix)
+    return lastInvoiceNumber.toString()
+  }
+
   async addMerchant( 
     ctx: Context,
-    id: string,
     name: string
   ) {
-    /* if (!ALLOWED_MSPS_CREAR_PRODUCTOS.includes(ctx.clientIdentity.getMSPID())) { // vérifier getmyID() = name ?
-      throw new Error("No tienes permiso para crear productos");
-    } */
-    const merchantKey = ctx.stub.createCompositeKey(merchantPrefix, [id]);
-/*     const precioInt = parseInt(precio);
-    if (isNaN(precioInt)) {
-      throw new Error("El precio debe ser un número");
+    if (!ALLOWED_MSPS_MERCHANT.includes(ctx.clientIdentity.getMSPID())) {
+      throw new Error("No tienes permiso para crear merchant");
     }
-    const cantidadInt = parseInt(cantidad);
-    if (isNaN(cantidadInt)) {
-      throw new Error("La cantidad debe ser un número");
-    } */
+    const id = ctx.clientIdentity.getID();
+    const merchantKey = ctx.stub.createCompositeKey(merchantPrefix, [id]);
     const merchant = {
       id,
       name
     };
     await ctx.stub.putState(merchantKey, Buffer.from(JSON.stringify(merchant)));
-    log.info("Mechant creado", merchant);
+    log.info("Merchant creado", merchant);
     return JSON.stringify(merchant);
   }
 
   async getMerchant(ctx: Context, id: string) { 
     const merchantKey = ctx.stub.createCompositeKey(merchantPrefix, [id]);
     const merchant = await ctx.stub.getState(merchantKey);
+    if (!merchant.toString()) {
+      throw new Error("El merchant no esta registrado");
+    }
     return merchant.toString();
   }
 
   async getMerchantList(ctx: Context) {
     let iterator = await ctx.stub.getStateByPartialCompositeKey(merchantPrefix, []);
-    //console.log("start")
     var merchant
-    //var orderst
-    //var orderjson
     var merchantList =[]
     let result = await iterator.next();
     while (!result.done) {
       console.log(result.value.key)
       merchant = await ctx.stub.getState(result.value.key).then(res => res.toString()).then(res => JSON.parse(res));
-      //orderst = order.toString()
-      //orderjson = JSON.parse(orderst)
-      //orderjson= JSON.parse(order.toString())
-      //console.log("a récupéré", orderst, orderjson)
       merchantList.push(merchant)
       result = await iterator.next();
     }
-    //console.log("fini", orderList)
     return merchantList
   }
 
   async getCustomerList(ctx: Context) {
     let iterator = await ctx.stub.getStateByPartialCompositeKey(customerPrefix, []);
-    //console.log("start")
     var customer
-    //var orderst
-    //var orderjson
     var customerList =[]
     let result = await iterator.next();
     while (!result.done) {
       console.log(result.value.key)
       customer = await ctx.stub.getState(result.value.key).then(res => res.toString()).then(res => JSON.parse(res));
-      //orderst = order.toString()
-      //orderjson = JSON.parse(orderst)
-      //orderjson= JSON.parse(order.toString())
-      //console.log("a récupéré", orderst, orderjson)
       customerList.push(customer)
       result = await iterator.next();
     }
-    //console.log("fini", orderList)
     return customerList
   }
 
 
   async addCustomer ( 
     ctx: Context,
-    id: string
   ) {
-    /* if (!ALLOWED_MSPS_CREAR_PRODUCTOS.includes(ctx.clientIdentity.getMSPID())) { // supprimer
-      throw new Error("No tienes permiso para crear productos");
-    } */
-    const customerKey = ctx.stub.createCompositeKey(customerPrefix, [id]);
-/*     const precioInt = parseInt(precio);
-    if (isNaN(precioInt)) {
-      throw new Error("El precio debe ser un número");
+    if (!ALLOWED_MSPS_CLIENT.includes(ctx.clientIdentity.getMSPID())) {
+      throw new Error("No tienes permiso para crear cliente");
     }
-    const cantidadInt = parseInt(cantidad);
-    if (isNaN(cantidadInt)) {
-      throw new Error("La cantidad debe ser un número");
-    } */
+    const id = ctx.clientIdentity.getID();
+    const customerKey = ctx.stub.createCompositeKey(customerPrefix, [id]);
     const customer = {
       id
     };
@@ -149,47 +127,197 @@ class TiendaContract extends Contract {
   async getCustomer(ctx: Context, id: string) { 
     const customerKey = ctx.stub.createCompositeKey(customerPrefix, [id]);
     const customer = await ctx.stub.getState(customerKey);
+    if (!customer.toString()) {
+      throw new Error("El cliente no esta registrado");
+    }
     return customer.toString();
   } 
-  /* async updateProduct(
-    ctx: Context,
-    id: string,
-    nombre: string,
-    descripcion: string,
-    precio: string,
-    cantidad: string
-  ) {
-    if (!ALLOWED_MSPS_CREAR_PRODUCTOS.includes(ctx.clientIdentity.getMSPID())) {
-      throw new Error("No tienes permiso para actualizar productos");
-    }
-    const productKey = ctx.stub.createCompositeKey(productPrefix, [id]);
-    const precioInt = parseInt(precio);
-    if (isNaN(precioInt)) {
-      throw new Error("El precio debe ser un número");
-    }
-    const cantidadInt = parseInt(cantidad);
-    if (isNaN(cantidadInt)) {
-      throw new Error("La cantidad debe ser un número");
-    }
-    const product = {
-      id,
-      nombre,
-      descripcion,
-      precio: precioInt,
-      cantidad: cantidadInt,
-      createdBy: ctx.clientIdentity.getID(),
-    };
-    await ctx.stub.putState(productKey, Buffer.from(JSON.stringify(product)));
-    return JSON.stringify(product);
+
+
+async addProduct (
+  ctx: Context,
+  id: string,
+  name: string,
+  price: string // en centimos
+) {
+  if (!ALLOWED_MSPS_MERCHANT.includes(ctx.clientIdentity.getMSPID())) {
+    throw new Error("No tienes permiso para actualizar productos");
   }
-  async deleteProduct(ctx: Context, id: string) {
-    if (!ALLOWED_MSPS_CREAR_PRODUCTOS.includes(ctx.clientIdentity.getMSPID())) {
-      throw new Error("No tienes permiso para crear productos");
-    }
-    const productKey = ctx.stub.createCompositeKey(productPrefix, [id]);
-    await ctx.stub.deleteState(productKey);
+  const merchantId = ctx.clientIdentity.getID();
+  const merchantKey = ctx.stub.createCompositeKey(merchantPrefix, [merchantId]);
+  const merchant = await ctx.stub.getState(merchantKey);
+  if (!merchant.toString()) {
+    throw new Error("El merchant no esta registrado");
   }
-*/
+  const priceInt = parseInt(price);
+  if (isNaN(priceInt)) {
+    throw new Error("El precio debe ser un número");
+  }
+
+  const productKey = ctx.stub.createCompositeKey(productPrefix, [merchantId+id]);
+
+  const product = {
+    id,
+    merchantId,
+    name,
+    priceInt
+  };
+  await ctx.stub.putState(productKey, Buffer.from(JSON.stringify(product)));
+  log.info("Product creado", product);
+  return JSON.stringify(product);
+}
+
+async getProduct(ctx: Context, id: string, merchantId: string) { 
+  const productKey = ctx.stub.createCompositeKey(productPrefix, [merchantId + id]);
+  const product = await ctx.stub.getState(productKey);
+  if (!product.toString()) {
+    throw new Error("El producto no esta registrado");
+  }
+  return product.toString();
+}
+
+async getProductListByMerchant(ctx: Context, merchantId: string) {
+  let iterator = await ctx.stub.getStateByPartialCompositeKey(productPrefix, []);
+  var product
+  var productList =[]
+  let result = await iterator.next();
+  while (!result.done) {
+    console.log(result.value.key)
+    product = await ctx.stub.getState(result.value.key).then(res => res.toString()).then(res => JSON.parse(res));
+
+    if (product && product.merchantId==merchantId) {
+      productList.push(product)
+    }
+    result = await iterator.next();
+  }
+  return productList
+}
+
+async getMyProductList(ctx: Context) {
+  const merchantId = ctx.clientIdentity.getID();
+  let iterator = await ctx.stub.getStateByPartialCompositeKey(productPrefix, []);
+  var product
+  var productList =[]
+  let result = await iterator.next();
+  while (!result.done) {
+    console.log(result.value.key)
+    product = await ctx.stub.getState(result.value.key).then(res => res.toString()).then(res => JSON.parse(res));
+
+    if (product && product.merchantId==merchantId) {
+      productList.push(product)
+    }
+    result = await iterator.next();
+  }
+  return productList
+}
+
+async deleteProduct(ctx: Context, id: string) {
+  const merchantId = ctx.clientIdentity.getID();
+  const productKey = await ctx.stub.createCompositeKey(productPrefix, [merchantId+id]);
+  const product = await ctx.stub.getState(productKey)
+  if (!product.toString()) {
+    throw new Error("El producto no existe")
+  }
+  await ctx.stub.deleteState(productKey);
+}
+
+async getProductList(ctx: Context) {
+  let iterator = await ctx.stub.getStateByPartialCompositeKey(productPrefix, []);
+  var product
+  var productList =[]
+  let result = await iterator.next();
+  while (!result.done) {
+    console.log(result.value.key)
+    product = await ctx.stub.getState(result.value.key).then(res => res.toString()).then(res => JSON.parse(res));
+    productList.push(product)
+    result = await iterator.next();
+  }
+  return productList
+}
+
+async addInvoice(
+  ctx: Context,
+  merchantId: string,
+  productId: string,
+  quantity: string
+) {
+  if (!ALLOWED_MSPS_CLIENT.includes(ctx.clientIdentity.getMSPID())) {
+    throw new Error("No tienes permiso para comprar");
+  }
+  const clientId = ctx.clientIdentity.getID();
+  const invoiceNumber = await ctx.stub.getState(lastInvoiceNumberPrefix).then(res => res.toString()).then(res => JSON.parse(res)).then(res => res.number) + 1
+  let total: number=0
+  let lineNumber: number
+  let price: number
+  let name: string
+  var invoiceDetailList =[]
+  const date = new Date()
+  let productKey = ctx.stub.createCompositeKey(productPrefix, [merchantId + productId]);
+  const product = await ctx.stub.getState(productKey).then(res => res.toString()).then(res => JSON.parse(res));
+  const quantityInt = parseInt(quantity)
+  if (isNaN(quantityInt)) {
+    throw new Error("La cantidad debe ser un número");
+  }
+  price = quantityInt * product.priceInt
+  total += price
+  name = product.name
+  lineNumber = 1
+  let invoiceDetail = {
+    invoiceNumber,
+    lineNumber,
+    productId,
+    name,
+    quantity,
+    price
+  }
+  let invoiceDetailKey = ctx.stub.createCompositeKey(invoiceDetailPrefix, [invoiceNumber.toString()+"line" + lineNumber.toString()]);
+  await ctx.stub.putState(invoiceDetailKey, Buffer.from(JSON.stringify(invoiceDetail)));
+  log.info("invoice detail creado", invoiceDetail);
+  invoiceDetailList.push(invoiceDetail)
+  
+  let invoice = {
+    invoiceNumber,
+    clientId,
+    merchantId,
+    date,
+    total
+  }
+
+  
+  let invoiceKey = ctx.stub.createCompositeKey(invoicePrefix, [invoiceNumber.toString()]);
+  await ctx.stub.putState(invoiceKey, Buffer.from(JSON.stringify(invoice)));
+  log.info("invoice creado", invoice);
+  invoiceDetailList.push(invoice)
+
+  const lastInvoiceNumber = {
+    number: invoiceNumber
+  }
+  await ctx.stub.putState(lastInvoiceNumberPrefix, Buffer.from(JSON.stringify(lastInvoiceNumber)))
+
+  return JSON.stringify(invoiceDetailList);
+}
+
+async getInvoice(ctx: Context, invoiceNumber: string) {
+  const userId = ctx.clientIdentity.getID();
+  const MSP = ctx.clientIdentity.getMSPID();
+  const invoiceKey = ctx.stub.createCompositeKey(invoicePrefix, [invoiceNumber]);
+  const invoice = await ctx.stub.getState(invoiceKey).then(res => res.toString()).then(res => JSON.parse(res));
+  if (!invoice) {
+    throw new Error("La factura no existe");
+  }
+  if (!((ALLOWED_MSPS_MERCHANT.includes(MSP) && invoice.merchantId==userId) || (ALLOWED_MSPS_CLIENT.includes(MSP) && invoice.clientId==userId))) {
+    throw new Error("No tienes permiso para consultar esa factura")
+  }
+  return invoice;
+}
+async getInvoiceDetail(ctx: Context, invoiceNumber: string, lineNumber: string) { 
+  const invoiceDetailKey = ctx.stub.createCompositeKey(invoicePrefix, [invoiceNumber + "line" + lineNumber]);
+  const invoiceDetail = await ctx.stub.getState(invoiceDetailKey);
+  if (!invoiceDetail.toString()) {
+    throw new Error("La linea de la factura no existe");
+  }
+  return invoiceDetail.toString();
+}
 
 async addOrder( // modifier pour client
     ctx: Context,
@@ -423,6 +551,30 @@ async addOrder( // modifier pour client
       result = await iterator.next();
     }
 
+    iterator = await ctx.stub.getStateByPartialCompositeKey(productPrefix, []);
+
+    result = await iterator.next();
+    while (!result.done) {
+      await ctx.stub.deleteState(result.value.key);
+      result = await iterator.next();
+    }
+
+    iterator = await ctx.stub.getStateByPartialCompositeKey(invoiceDetailPrefix, []);
+
+    result = await iterator.next();
+    while (!result.done) {
+      await ctx.stub.deleteState(result.value.key);
+      result = await iterator.next();
+    }
+
+    iterator = await ctx.stub.getStateByPartialCompositeKey(invoicePrefix, []);
+
+    result = await iterator.next();
+    while (!result.done) {
+      await ctx.stub.deleteState(result.value.key);
+      result = await iterator.next();
+    }
+
     iterator = await ctx.stub.getStateByPartialCompositeKey(orderPrefix, []);
 
     result = await iterator.next();
@@ -438,6 +590,8 @@ async addOrder( // modifier pour client
       await ctx.stub.deleteState(result.value.key);
       result = await iterator.next();
     }
+    
+    await ctx.stub.deleteState(lastInvoiceNumberPrefix);
 
     return "OK";
   }
