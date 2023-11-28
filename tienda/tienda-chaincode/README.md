@@ -1,4 +1,4 @@
-## Chaincode para el proyecto North
+## Chaincode para el proyecto Tienda
 
 
 ## Instalación del chaincode en los peers
@@ -9,6 +9,7 @@ ngrok tcp 9999 --region=eu
 ```
 
 Instalacion del chaincode:
+en la carpeta tienda-chaincode
 
 ```bash
 export CHAINCODE_ADDRESS=$(curl http://localhost:4040/api/tunnels | jq -r ".tunnels[0].public_url" | sed 's/.*tcp:\/\///')
@@ -47,8 +48,8 @@ kubectl hlf chaincode install --path=./chaincode.tgz \
 ## Aprobar chaincode
 ```bash
 export CHAINCODE_NAME=tienda-dev
-export SEQUENCE=1
-export VERSION="1.0"
+export SEQUENCE=1 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
+export VERSION="1.0" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
 kubectl hlf chaincode approveformyorg --config=${CP_FILE} --user=admin --peer=org2-peer0.tienda \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name="${CHAINCODE_NAME}" \
@@ -101,16 +102,16 @@ kubectl hlf chaincode query --config=$CP_FILE \
     --fcn=Test
 ```
 
-### Inicializar chaincode
+### Inicializar chaincode  # modificar
 
 ```bash
 kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=north-dev --channel=north \
-    --fcn=Initialize -a 'Dolar' -a '$'
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=Init
 ```
 
-### Ejecutar chaincode
+### Ejecutar chaincode # modificar
 ```bash
 export CP_FILE=$PWD/../../../nft.yaml
 IDENTITY_ORG1=$(kubectl hlf chaincode query --config=$CP_FILE \
@@ -129,30 +130,64 @@ kubectl hlf chaincode query --config=$CP_FILE \
 ### Créer customer
 ```bash
 kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org2 --peer=org2-peer0.north \
-    --chaincode=north-dev --channel=north \
+    --user=user-org2 --peer=org2-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
     --fcn=addCustomer \
-     -a 'ANTR' \
-     -a 'companyTest2' \
-     -a 'Name' \
-     -a 'Title' \
-     -a 'Street' \
-     -a 'Madrid' \
-     -a 'null' \
-     -a 'ZIP' \
-     -a 'Madrid' \
-     -a '069898444' \
-     -a '013445555' 
+     -a 'customerTest2' 
 ```
 
 ### consulter customer
 ```bash
 kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.north \
-    --chaincode=north-dev --channel=north \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
     --fcn=getCustomer \
-     -a 'ALFKI' 
+     -a 'customerTest' 
 ```
+
+### get all customers
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=getCustomerList 
+```
+
+### Créer merchant
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org2 --peer=org2-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=addMerchant \
+     -a 'merchant2Id' \
+     -a 'merchant2Test' 
+```
+
+### consulter merchant
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=getMerchant \
+     -a 'merchantId' 
+```
+
+### get all merchants
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=getMerchantList 
+```
+
+### limpiar chaincode
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=limpiarChaincode
+```
+
 
 ### Créer order
 ```bash

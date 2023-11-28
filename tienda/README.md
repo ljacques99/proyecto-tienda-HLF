@@ -1,6 +1,6 @@
 ## Creacion de la red
 
-Este fichero creara la red que necesitamos para completar el proyecto North
+Este fichero creara la red que necesitamos para completar el proyecto Tienda
 
 La red que queremos crear es la siguiente:
 
@@ -370,7 +370,7 @@ kubectl hlf ca enroll --name=ord-ca --namespace=tienda --user=admin --secret=adm
 
 4. Adjuntar el usuario a la cadena de conexion
 
-```
+```bash
 kubectl hlf utils adduser --userPath=admin-ordservice.yaml --config=ordservice.yaml --username=admin --mspid=OrdererMSP
 ```
 

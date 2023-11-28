@@ -9,6 +9,7 @@ const { Contract } = require("fabric-contract-api");
 // Definir nombres de tipo de objeto para el prefijo
 const customerPrefix = "customer";
 const merchantPrefix = "merchant";
+const lastInvoiceNumberPrefix = "lastInvoice"
 const orderPrefix = "order";
 const orderDetailPrefix = "orderDetail";
 
@@ -30,6 +31,18 @@ class TiendaContract extends Contract {
   async Ping(ctx: Context) {
     log.info("ping");
     return "pong";
+  }
+
+  async Init(ctx: Context) { // verificar
+    const checkLastInvoiceNumber=await ctx.stub.getState(lastInvoiceNumberPrefix)
+    if (checkLastInvoiceNumber != null) {
+      throw new Error("Chaincode ya initializado")
+    }
+    //const lastInvoiceNumberKey = ctx.stub.createCompositeKey(lastInvoiceNumberPrefix)
+    const lastInvoiceNumber = {
+      number: 0
+    }
+    await ctx.stub.putState(lastInvoiceNumberPrefix, Buffer.from(JSON.stringify(lastInvoiceNumber)))
   }
 
   async addMerchant( 
@@ -111,12 +124,12 @@ class TiendaContract extends Contract {
 
   async addCustomer ( 
     ctx: Context,
-    address: string
+    id: string
   ) {
     /* if (!ALLOWED_MSPS_CREAR_PRODUCTOS.includes(ctx.clientIdentity.getMSPID())) { // supprimer
       throw new Error("No tienes permiso para crear productos");
     } */
-    const customerKey = ctx.stub.createCompositeKey(customerPrefix, [address]);
+    const customerKey = ctx.stub.createCompositeKey(customerPrefix, [id]);
 /*     const precioInt = parseInt(precio);
     if (isNaN(precioInt)) {
       throw new Error("El precio debe ser un número");
@@ -126,15 +139,15 @@ class TiendaContract extends Contract {
       throw new Error("La cantidad debe ser un número");
     } */
     const customer = {
-      address
+      id
     };
     await ctx.stub.putState(customerKey, Buffer.from(JSON.stringify(customer)));
     log.info("Customer creado", customer);
     return JSON.stringify(customer);
   }
 
-  async getCustomer(ctx: Context, address: string) { 
-    const customerKey = ctx.stub.createCompositeKey(customerPrefix, [address]);
+  async getCustomer(ctx: Context, id: string) { 
+    const customerKey = ctx.stub.createCompositeKey(customerPrefix, [id]);
     const customer = await ctx.stub.getState(customerKey);
     return customer.toString();
   } 
