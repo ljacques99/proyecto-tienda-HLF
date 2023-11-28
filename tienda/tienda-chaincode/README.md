@@ -185,10 +185,11 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org1 --peer=org1-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=addProduct \
-     -a 'prod1' \
-     -a 'producto test 1' \
-     -a '18'
+     -a 'prod2' \
+     -a 'producto test 2' \
+     -a '25'
 ```
+
 
 ### get my Product
 ```bash
@@ -205,8 +206,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=addInvoice \
      -a 'x509::/OU=client/CN=client-org1::/C=ES/L=Alicante/=Alicante/O=Kung Fu Software/OU=Tech/CN=ca' \
-     -a 'prod1' \
-     -a '2'
+     -a '[{"productId": "prod1", "quantity": "2"},{"productId": "prod2", "quantity": "3"}]'
 ```
 
 ### get Invoice
@@ -216,6 +216,32 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=getInvoice \
      -a '1'
+```
+
+### get Invoice Detail
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org2 --peer=org2-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=getInvoiceDetail \
+     -a '5'  \
+     -a '2'
+```
+
+### get Invoice of one Client
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org2 --peer=org2-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=getMyInvoiceClient
+```
+
+### get Invoice of one Merchant
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=getMyInvoiceMerchant
 ```
 
 ### limpiar chaincode

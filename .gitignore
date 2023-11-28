@@ -1,4 +1,5 @@
 *.yaml
+!kind.yaml
 tienda/tienda-express/node_modules
 tienda/tienda-chaincode/node_modules
 tienda/tienda-chaincode/dist
