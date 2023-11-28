@@ -351,6 +351,33 @@ async getInvoiceDetail(ctx: Context, invoiceNumber: string, lineNumber: string) 
   return invoiceDetail.toString();
 }
 
+async getInvoiceDetailList (ctx: Context, invoiceNumber: string) {
+  const userId = ctx.clientIdentity.getID(); // verificar el acceso a la factura antes de consultar el detalle
+  const MSP = ctx.clientIdentity.getMSPID();
+  const invoiceKey = ctx.stub.createCompositeKey(invoicePrefix, [invoiceNumber]);
+  const invoice = await ctx.stub.getState(invoiceKey).then(res => res.toString()).then(res => JSON.parse(res));
+  if (!invoice) {
+    throw new Error("La factura no existe");
+  }
+  if (!((ALLOWED_MSPS_MERCHANT.includes(MSP) && invoice.merchantId==userId) || (ALLOWED_MSPS_CLIENT.includes(MSP) && invoice.clientId==userId))) {
+    throw new Error("No tienes permiso para consultar esa factura")
+  }
+  let iterator = await ctx.stub.getStateByPartialCompositeKey(invoiceDetailPrefix, []);
+  var invoiceDetail
+  var invoiceDetailList =[]
+  let result = await iterator.next();
+  while (!result.done) {
+    console.log(result.value.key)
+    invoiceDetail = await ctx.stub.getState(result.value.key).then(res => res.toString()).then(res => JSON.parse(res));
+
+    if (invoiceDetail && invoiceDetail.invoiceNumber== invoiceNumber) {
+      invoiceDetailList.push(invoiceDetail)
+    }
+    result = await iterator.next();
+  }
+  return invoiceDetailList
+}
+
 async getMyInvoiceMerchant (ctx: Context) {
   const merchantId = ctx.clientIdentity.getID();
   const MSP = ctx.clientIdentity.getMSPID();

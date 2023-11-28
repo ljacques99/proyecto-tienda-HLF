@@ -93,38 +93,13 @@ kubectl hlf chaincode query --config=$CP_FILE \
     --fcn=Ping
 ```
 
-### chaincode Test express
-```bash
-export CP_FILE=$PWD/../../north.yaml
-kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.north \
-    --chaincode=north-dev --channel=north \
-    --fcn=Test
-```
-
-### Inicializar chaincode  # modificar
+### Inicializar chaincode  
 
 ```bash
 kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org1 --peer=org1-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=Init
-```
-
-### Ejecutar chaincode # modificar
-```bash
-export CP_FILE=$PWD/../../../nft.yaml
-IDENTITY_ORG1=$(kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=ClientAccountID)
-
-echo "Mi Identity es: \"$IDENTITY_ORG1\""
-
-kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=BalanceOf -a "$IDENTITY_ORG1"
 ```
 
 ### Créer customer
@@ -206,7 +181,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=addInvoice \
      -a 'x509::/OU=client/CN=client-org1::/C=ES/L=Alicante/=Alicante/O=Kung Fu Software/OU=Tech/CN=ca' \
-     -a '[{"productId": "prod1", "quantity": "2"},{"productId": "prod2", "quantity": "3"}]'
+     -a '[{"productId": "prod1", "quantity": "2"},{"productId": "prod2", "quantity": "4"}]'
 ```
 
 ### get Invoice
@@ -226,6 +201,15 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --fcn=getInvoiceDetail \
      -a '5'  \
      -a '2'
+```
+
+### get Invoice Detail List
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org2 --peer=org2-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=getInvoiceDetailList \
+     -a '5'  
 ```
 
 ### get Invoice of one Client
@@ -252,153 +236,3 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --fcn=limpiarChaincode
 ```
 
-
-### Créer order
-```bash
-kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org2 --peer=org2-peer0.north \
-    --chaincode=north-dev --channel=north \
-    --fcn=addOrder \
-     -a '10835' \
-     -a 'ALFKI' \
-     -a '1' \
-     -a '1998-01-15' \
-     -a '1998-02-12' \
-     -a '1998-01-21' \
-     -a '3' \
-     -a '69.53' \
-     -a 'Alfred' \
-     -a 'Street' \
-     -a 'Paris' \
-     -a 'ZIP' \
-     -a 'France' 
-```
-
-### consulter order
-```bash
-kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.north \
-    --chaincode=north-dev --channel=north \
-    --fcn=getOrder \
-     -a '10835' 
-```
-
-### consulter orderList
-```bash
-kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.north \
-    --chaincode=north-dev --channel=north \
-    --fcn=getOrderList \
-     -a 'ALFKI' 
-```
-
-### Créer orderDetail
-```bash
-kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org2 --peer=org2-peer0.north \
-    --chaincode=north-dev --channel=north \
-    --fcn=addOrderDetail \
-     -a '10835' \
-     -a '59' \
-     -a '55' \
-     -a '15' \
-     -a '0' 
-```
-
-### consulter orderDetail
-```bash
-kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.north \
-    --chaincode=north-dev --channel=north \
-    --fcn=getOrderDetail \
-     -a '10835'  \
-     -a '59'
-```
-
-### Mintear token
-
-```bash
-kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=Mint \
-     -a '2' \
-     -a 'https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png' \
-     -a 'Nombre' \
-     -a 'Description'
-
-```
-
-### Obtener la URI del token por el ID
-
-```bash
-kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=GetToken -a '1'
-
-kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=Symbol
-
-kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=Name
-
-
-kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=TotalSupply
-
-```
-
-## Transferir
-
-```bash
-export CP_FILE=$PWD/../../../nft.yaml
-IDENTITY_ORG2=$(kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org2 --peer=org2-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=ClientAccountID)
-
-echo "Mi Identity Org2 es: \"$IDENTITY_ORG2\""
-
-
-kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=TransferFrom \
-     -a $IDENTITY_ORG2 \
-     -a $IDENTITY_ORG1 \
-     -a "1"
-
-
-```
-
-### Comprobar nuestro balance token
-
-```bash
-kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org2 --peer=org2-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=ClientAccountBalance
-
-kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=ClientAccountBalance
-
-```
-
-### Quemar un NFT
-
-```bash
-kubectl hlf chaincode invoke --config=$CP_FILE \
-    --user=user-org2 --peer=org2-peer0.default \
-    --chaincode=nft-dev --channel=demo \
-    --fcn=Burn -a "1"
-
-```
