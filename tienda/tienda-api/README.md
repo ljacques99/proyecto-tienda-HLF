@@ -74,6 +74,12 @@ http POST "http://localhost:3003/submit" x-user:user1 fcn=Mint "args[]=9"  \
 http POST "http://localhost:3003/evaluate" x-user:user1 fcn=GetToken "args[]=9"
 ```
 
+### crear account
+
+```bash
+http POST "http://localhost:3003/submit" x-user:user1 fcn=addMerchant "args[]=TestApi"
+```
+
 ### Registrar otro usuario
 
 ```bash

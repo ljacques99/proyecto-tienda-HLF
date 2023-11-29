@@ -15,7 +15,7 @@ import express = require("express")
 import { newGrpcConnection, newConnectOptions } from './utils';
 const cors = require("cors")
 
-const log = new Logger({ name: "north-api" })
+const log = new Logger({ name: "tienda-api" })
 
 
 async function main() {
@@ -29,6 +29,7 @@ async function main() {
     let peerCACert: string = "";
     let idx = 0
     for (const peerName of orgPeerNames) {
+        console.log(peerName)
         const peer = networkConfig.peers[peerName]
         const peerUrlKey = `url`
         const peerCACertKey = `tlsCACerts.pem`
@@ -96,78 +97,6 @@ async function main() {
         next();
     });
 
-    async function OrderList (customerList)  { return new Promise((resolve, reject) => {
-        var orderList: string[] = []
-        var count: number = 0
-        customerList.map( async (item) => {
-            //console.log(item.customer_id)
-            
-            await fetch(`http://localhost:4455/ordersByCustomer`, {
-                method:'POST',
-                body: JSON.stringify({customer_id : item.customer_id}),
-                headers : {'Content-type': 'application/json'}
-            }).then(res => res.json())
-            .then(async (res) => {
-                res.map(async (item) => {
-                    orderList.push(item.order_id.toString())
-                    count = count + 1    
-                    console.log("item2", item.order_id, count)
-                    var arrayCust =[]
-                    for (let i in item) { if (item[i]== undefined) {arrayCust.push("null")} else {arrayCust.push(item[i].toString())}}
-                    //console.log(arrayCust)
-                    await contract.submitTransaction("addOrder", ...(arrayCust || []))
-                    //console.log("terminé", item.order_id, count) 
-            })})})
-        //return orderList
-        console.log("liste", orderList)
-        setTimeout(() => resolve(orderList),30000)
-    })}
-
-    async function OrderDetails (orderList)  { return new Promise((resolve, reject) => {
-        var count: number = 0
-        orderList.map( async (item) => {
-            //console.log(item.customer_id)
-            
-            await fetch(`http://localhost:4455/orderdetailsByOrder`, {
-                method:'POST',
-                body: JSON.stringify({order_id : item}),
-                headers : {'Content-type': 'application/json'}
-            }).then(res => res.json())
-            .then(async (res) => {
-                res.map(async (item) => {
-                    count = count + 1    
-                    console.log("item3", item.order_id, item.product_id, count)
-                    var arrayCust =[]
-                    for (let i in item) { if (item[i]== undefined) {arrayCust.push("null")} else {arrayCust.push(item[i].toString())}}
-                    //console.log(arrayCust)
-                    await contract.submitTransaction("addOrderDetail", ...(arrayCust || []))
-                    //console.log("terminé", item.order_id, count) 
-            })})})
-        //return orderList
-        //console.log("liste", orderList)
-        //setTimeout(() => resolve(orderList),30000)
-    })}
-
-    app.get("/init", async (req, res) => {
-        try {
-            const customerList = await fetch(`http://localhost:4455/customers`).then(res => res.json())
-            //console.log(customerList)
-            
-            await customerList.map( async (item) => {
-                var arrayCust =[]
-                for (let i in item) { if (item[i]== undefined) {arrayCust.push("null")} else {arrayCust.push(item[i])}}
-                console.log(arrayCust)
-                await contract.submitTransaction("addCustomer", ...(arrayCust || []))                
-             })
-            // .then(async item =>  await contract.submitTransaction("addCustomer", item))
-            
-            await OrderList(customerList).then(orderList => {console.log("dans init",orderList); OrderDetails(orderList)}).then(() =>log.info("Initialised")).then(() =>res.send("initialisé") )
-            
-            
-        } catch (e) {
-            res.send(e.details && e.details.length ? e.details : e.message);
-        }
-    })
     const users = {}
     app.post("/signup", async (req, res) => {
         const { username, password } = req.body
@@ -253,17 +182,7 @@ async function main() {
             res.send(e.details && e.details.length ? e.details : e.message);
         }
     })
-    /* app.post("/addCustomer", async (req, res) => {
-        try {
-            const fcn = req.body.fcn
-            const responseBuffer = await (req as any).contract.evaluateTransaction(fcn, ...(req.body.args || []));
-            const responseString = Buffer.from(responseBuffer).toString();
-            res.send(responseString);
-        } catch (e) {
-            res.status(400)
-            res.send(e.details && e.details.length ? e.details : e.message);
-        }
-    }) */
+
 
     app.post("/consult", async (req, res) => {
         try {
