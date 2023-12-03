@@ -48,8 +48,8 @@ kubectl hlf chaincode install --path=./chaincode.tgz \
 ## Aprobar chaincode
 ```bash
 export CHAINCODE_NAME=tienda-dev
-export SEQUENCE=2 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
-export VERSION="1.1" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
+export SEQUENCE=1 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
+export VERSION="1.0" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
 kubectl hlf chaincode approveformyorg --config=${CP_FILE} --user=admin --peer=org2-peer0.tienda \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name="${CHAINCODE_NAME}" \
@@ -64,7 +64,7 @@ kubectl hlf chaincode approveformyorg --config=${CP_FILE} --user=admin --peer=or
 
 ## Commit chaincode
 ```bash
-kubectl hlf chaincode commit --config=${CP_FILE} --user=user-org1 --mspid=Org1MSP \
+kubectl hlf chaincode commit --config=${CP_FILE} --user=userorg1 --mspid=Org1MSP \
     --version "$VERSION" --sequence "$SEQUENCE" --name="${CHAINCODE_NAME}" \
     --policy="OR('Org1MSP.member', 'Org2MSP.member')" --channel=tienda
 ```
@@ -88,7 +88,7 @@ npm run chaincode:start
 ```bash
 export CP_FILE=$PWD/../../tienda.yaml
 kubectl hlf chaincode query --config=$CP_FILE \
-    --user=userB-org2 --peer=org2-peer0.tienda \
+    --user=user-org2 --peer=org2-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=Ping
 ```
@@ -108,7 +108,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org2 --peer=org2-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=addCustomer \
-     -a 'customerTest' 
+     -a 'customerTest2' 
 ```
 
 ### consulter customer
@@ -143,7 +143,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org1 --peer=org1-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=getMerchant \
-     -a 'merchant2Id' 
+     -a 'merchantTest' 
 ```
 
 ### get all merchants
@@ -162,7 +162,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --fcn=addProduct \
      -a 'prod2' \
      -a 'producto test 2' \
-     -a '25'
+     -a '23'
 ```
 
 
