@@ -96,7 +96,7 @@ app.post('/consult', async (req, res) => {
 
         const contract= network.getContract("tienda-dev")
 
-        const result = await contract.evaluateTransaction(fcn)
+        const result = await contract.evaluateTransaction(fcn, ...(req.body.args || []))
         console.log("result", result.toString())
         gateway.disconnect()
         res.send(result.toString())
