@@ -48,8 +48,8 @@ kubectl hlf chaincode install --path=./chaincode.tgz \
 ## Aprobar chaincode
 ```bash
 export CHAINCODE_NAME=tienda-dev
-export SEQUENCE=1 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
-export VERSION="1.0" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
+export SEQUENCE=2 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
+export VERSION="1.1" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
 kubectl hlf chaincode approveformyorg --config=${CP_FILE} --user=admin --peer=org2-peer0.tienda \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name="${CHAINCODE_NAME}" \
@@ -181,7 +181,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=addInvoice \
      -a 'x509::/OU=client/CN=client-org1::/C=ES/L=Alicante/=Alicante/O=Kung Fu Software/OU=Tech/CN=ca' \
-     -a '[{"productId": "prod1", "quantity": "2"},{"productId": "prod2", "quantity": "4"}]'
+     -a '[{"productId": "prod1", "quantity": "3"},{"productId": "prod2", "quantity": "4"}]'
 ```
 
 ### get Invoice

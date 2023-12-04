@@ -1,4 +1,4 @@
-//var yaml = require("js-yaml")
+//yaml = require("js-yaml")
 var yaml = require("yaml")
 var fs = require("fs")
 const _ =require("lodash")
@@ -6,13 +6,13 @@ const _ =require("lodash")
 
 const { Wallets, Gateway, X509Identity } = require('fabric-network');
 
-async function id() {
-    const wallet = await Wallets.newFileSystemWallet('./WALLETS/wallet')
+async function id(user, yamlFile, walletPath) {
+    const wallet = await Wallets.newFileSystemWallet(walletPath)
 
-    const user = "userAorg2"
+    //const user = "userAorg2"
 
     //const ccpFileYaml = yaml.load(fs.readFileSync("../../tienda2.yaml", {encoding: 'utf-8'}))
-    const ccpFileYaml = yaml.parse(fs.readFileSync("../../tienda2.yaml", {encoding: 'utf-8'}))
+    const ccpFileYaml = yaml.parse(fs.readFileSync(yamlFile, {encoding: 'utf-8'}))
 
     const userData = _.get(ccpFileYaml, `organizations.Org2MSP.users.${user}`)
 
@@ -34,4 +34,4 @@ async function id() {
     await wallet.put(user, identity)
 }
 
-id()
+id("userAorg2", "../../tienda2.yaml", './WALLETS/wallet')
