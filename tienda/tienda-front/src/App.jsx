@@ -1,42 +1,50 @@
-import { useState } from 'react'
-import {Route, Routes, BrowserRouter} from 'react-router-dom'
-import {QueryClient, QueryClientProvider} from 'react-query'
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import Home from './routes/Home'; // Asegúrate de tener un componente Home
+import Login from './routes/Login';
+import Navbar from "./components/NavBar";
+import Products from "./routes/Products";
+import Shop from "./routes/Shop";
+import Basket from "./routes/Basket";
+import { BasketProvider } from "./context/BasketContext";
 
-//import viteLogo from '/vite.svg'
+// Crear un enrutador
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <><Navbar /><Home /></>,
+  },
+  {
+    path: '/login',
+    element: <><Navbar /><Login /></>,
+  },
+  {
+    path: '/products',
+    element: <><Navbar /><Products /></>,
+  },
+  {
+    path: '/shop',
+    element: <><Navbar /><Shop /></>,
+  },
+  {
+    path: '/basket',
+    element: <><Navbar /><Basket /></>,
+  }
+]);
 
-import {Home} from './Components/Home'
-import { Welcome } from './Components/Welcome'
-import { Customers } from './Components/Customers'
-import { CustomerDetail } from './Components/CustomerDetail'
-import { Test } from './Components/Test'
-import { Login } from './Components/login'
-import { Orders } from './Components/Orders'
-import { OrderDetail } from './Components/OrderDetail'
-
-const queryClient = new QueryClient()  
-
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element ={<Home/>}>
-            <Route path="*" element ={<Welcome/>}/>
-            <Route index element ={<Welcome/>}/>
-            <Route path="/customers" element ={<Customers/>}/>
-            <Route path="/orders/:customer_id" element ={<Orders/>}/>
-            <Route path="/orderdetail/:order_id" element ={<OrderDetail/>}/>
-          </Route>
-          <Route path="/customerDetail/:customer_id" element={<CustomerDetail/>}>
-          </Route>
-          <Route path="/ping" element={<Test/>}/>
-          <Route path="/login" element={<Login/>}/> 
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>  
-  )
-}
+    <>
+    <AuthProvider>
+      <BasketProvider>
+        <RouterProvider router={router} />
+      </BasketProvider>
+    </AuthProvider>
+    </>
+  );
+};
 
-export default App
+export default App;
