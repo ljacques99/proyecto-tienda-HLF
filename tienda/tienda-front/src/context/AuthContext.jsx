@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetch('http://localhost:3003/login', {
+      const response = await fetch('http://localhost:3005/login', {
         method: 'POST',
         body: JSON.stringify({ username, password }),
         headers: { 'Content-type': 'application/json' },

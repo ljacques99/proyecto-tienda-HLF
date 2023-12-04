@@ -4,7 +4,7 @@ const Basket = () => {
   const { basketItems, removeFromBasket } = useBasket();
 
   // Calcular el subtotal de los elementos en la cesta
-  const subtotal = basketItems.reduce((total, item) => total + item.price, 0);
+  const subtotal = basketItems.reduce((total, item) => total + item.priceInt, 0);
 
   return (
     <div className="bg-white py-12">
@@ -13,14 +13,14 @@ const Basket = () => {
         <ul role="list" className="mt-8 divide-y divide-gray-200">
           {basketItems.map((item) => (
             <li key={item.id} className="flex items-center py-6 space-x-6">
-              <img src={item.image} alt={item.title} className="h-24 w-24 object-cover object-center rounded-md" />
+              {/* <img src={item.image} alt={item.title} className="h-24 w-24 object-cover object-center rounded-md" /> */}
               <div className="flex flex-1 justify-between items-center">
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-900">{item.title}</span>
+                  <span className="text-sm font-medium text-gray-900">{item.name}</span>
                   <span className="text-sm text-gray-600">{item.options}</span> {/* Replace with item options like size or color */}
                 </div>
                 <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-900">${item.price}</span>
+                  <span className="text-sm font-medium text-gray-900">${item.priceInt}</span>
                   <button onClick={() => removeFromBasket(item.id)} className="ml-4 text-sm font-medium text-indigo-600 hover:text-indigo-500">Remove</button>
                 </div>
               </div>
