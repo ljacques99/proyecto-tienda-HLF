@@ -8,6 +8,7 @@ const _ =require("lodash")
 
 var app = express();
 app.use(bodyParser.json());
+app.use(cors())
 
 const { Wallets, Gateway } = require('fabric-network');
 
