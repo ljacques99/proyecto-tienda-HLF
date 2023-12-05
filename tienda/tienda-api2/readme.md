@@ -17,3 +17,12 @@ http://localhost:3004/id
 {
   "user": "user-org2"
 }
+
+
+Post body para añadir un producto en el API
+http://localhost:3003/submit
+
+{
+  "user": "user-org1",
+  "args": ["prodMartes1", "camiseta blanca", "8"]
+}

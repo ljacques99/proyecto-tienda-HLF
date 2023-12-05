@@ -64,7 +64,7 @@ kubectl hlf chaincode approveformyorg --config=${CP_FILE} --user=admin --peer=or
 
 ## Commit chaincode
 ```bash
-kubectl hlf chaincode commit --config=${CP_FILE} --user=userorg1 --mspid=Org1MSP \
+kubectl hlf chaincode commit --config=${CP_FILE} --user=user-org1 --mspid=Org1MSP \
     --version "$VERSION" --sequence "$SEQUENCE" --name="${CHAINCODE_NAME}" \
     --policy="OR('Org1MSP.member', 'Org2MSP.member')" --channel=tienda
 ```
