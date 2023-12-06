@@ -85,11 +85,12 @@ app.post('/id', async (req, res) => {
 })
 
 app.post('/consult', async (req, res) => {
+    const gateway = new Gateway();
     try {
         const fcn = req.body.fcn
         const user = req.body.user
         const ccpFileYaml = yaml.parse(fs.readFileSync(config.networkConfigPath, {encoding: 'utf-8'}))
-        const gateway = new Gateway();
+        
         const wallet = await Wallets.newFileSystemWallet(config.walletPath)
         await gateway.connect(ccpFileYaml, {identity: user, wallet: wallet} )
 
@@ -99,21 +100,24 @@ app.post('/consult', async (req, res) => {
 
         const result = await contract.evaluateTransaction(fcn, ...(req.body.args || []))
         console.log("result", result.toString())
-        gateway.disconnect()
         res.send(result.toString())
 
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({error: error});
-    } 
+    } finally {
+        gateway.disconnect()
+    }
 })
 
+
 app.post('/submit', async (req, res) => {
+    const gateway = new Gateway();
     try {
         const fcn = req.body.fcn
         const user = req.body.user
         const ccpFileYaml = yaml.parse(fs.readFileSync(config.networkConfigPath, {encoding: 'utf-8'}))
-        const gateway = new Gateway();
+        
         const wallet = await Wallets.newFileSystemWallet(config.walletPath)
         await gateway.connect(ccpFileYaml, {identity: user, wallet: wallet} )
 
@@ -125,12 +129,13 @@ app.post('/submit', async (req, res) => {
 
         const result = await contract.submitTransaction(fcn, ...(req.body.args || []) )
         console.log("transaction registered", result.toString())
-        gateway.disconnect()
         res.send(result.toString())
 
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({error: error});
+    } finally {
+        gateway.disconnect()
     }
 })
 
