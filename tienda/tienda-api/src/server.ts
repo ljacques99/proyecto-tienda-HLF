@@ -13,6 +13,8 @@ import { checkConfig, config } from './config';
 import FabricCAServices = require("fabric-ca-client")
 import express = require("express")
 import { newGrpcConnection, newConnectOptions } from './utils';
+var cookieParser = require('cookie-parser')
+const jwt = require('jsonwebtoken')
 const cors = require("cors")
 
 const log = new Logger({ name: "tienda-api" })
@@ -93,6 +95,7 @@ async function main() {
     const app = express();
     app.use(express.json());
     app.use(cors());
+    app.use(cookieParser())
     app.use((req, res, next) => {
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -140,7 +143,11 @@ async function main() {
                 enrollmentSecret: password,
             })
             users[username] = r
-            res.send("OK")
+            let token = jwt.sign({
+                username,
+                mspID: config.mspID
+            }, 'este-es-el-seed', {expiresIn: '48h'})
+            res.cookie("cookieDeHLFtienda", token, {maxAge:900000}).send(token)
         } catch(e) {
             res.status(400)
             res.send(e.details && e.details.length ? e.details : e.message);
@@ -149,7 +156,25 @@ async function main() {
     app.use( /^(\/.+|(?!\/signup|\/login|\/disconnect).*)$/, async (req, res, next) => {
         (req as any).contract = contract
         try {
-            const user = req.headers["x-user"] as string
+            console.log("cookie",req.cookies["cookiedehlftienda"])
+            const token1= req.cookies["cookiedehlftienda"]
+            const token2 = req.headers["authorization"]
+            console.log('token', token2)
+            if(token1 && token2 && token1!=token2) {
+                res.status(401).send("Los dos tokens son diferentes")
+                return
+            }
+            const token = token1 || token2
+
+            if(!token) return res.status(401).json('Unauthorize user')
+            const decoded = jwt.verify(token,'este-es-el-seed');
+            console.log("decoded", decoded)
+            if(decoded.mspID!=config.mspID) {
+                res.status(401).send("EL usuario no partenece a esta organizacion")
+                return
+            }
+            const user= decoded.username
+            //const user = req.headers["x-user"] as string
             console.log(users, user)
             if (user && users[user]) {
                 const connectOptions = await newConnectOptions(
