@@ -70,15 +70,17 @@ async function main() {
         registrarUserResponse.certificate,
         registrarUserResponse.key.toBytes()
     );
+    
+    const grpcConn = await newGrpcConnection(peerUrl, Buffer.from(peerCACert))
+    let contract=null // to quit when untoggle comment
 
-
-    const adminUser = _.get(networkConfig, `organizations.${config.mspID}.users.${config.hlfUser}`)
+    /* const adminUser = _.get(networkConfig, `organizations.${config.mspID}.users.${config.hlfUser}`)
     const userCertificate = _.get(adminUser, "cert.pem")
     const userKey = _.get(adminUser, "key.pem")
     if (!userCertificate || !userKey) {
         throw new Error(`User ${config.hlfUser} not found in network configuration`);
     }
-    const grpcConn = await newGrpcConnection(peerUrl, Buffer.from(peerCACert))
+    
     const connectOptions = await newConnectOptions(
         grpcConn,
         config.mspID,
@@ -87,7 +89,7 @@ async function main() {
     )
     const gateway = connect(connectOptions);
     const network = gateway.getNetwork(config.channelName);
-    const contract = network.getContract(config.chaincodeName);
+    const contract = network.getContract(config.chaincodeName); */
     const app = express();
     app.use(express.json());
     app.use(cors());
@@ -132,14 +134,19 @@ async function main() {
             res.send("Username not found")
             return
         }
-        const r = await fabricCAServices.enroll({
-            enrollmentID: username,
-            enrollmentSecret: password,
-        })
-        users[username] = r
-        res.send("OK")
+        try {
+            const r = await fabricCAServices.enroll({
+                enrollmentID: username,
+                enrollmentSecret: password,
+            })
+            users[username] = r
+            res.send("OK")
+        } catch(e) {
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
+        }
     })
-    app.use(async (req, res, next) => {
+    app.use( /^(\/.+|(?!\/signup|\/login|\/disconnect).*)$/, async (req, res, next) => {
         (req as any).contract = contract
         try {
             const user = req.headers["x-user"] as string
@@ -155,11 +162,14 @@ async function main() {
                 const network = gateway.getNetwork(config.channelName);
                 const contract = network.getContract(config.chaincodeName);
                 (req as any).contract = contract
-            }
+            } else {
+                throw new Error(`El usuario ${user} no existe`)
+            } 
             next()
         } catch (e) {
             log.error(e)
-            next(e)
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
         }
     })
     app.get("/ping", async (req, res) => {
@@ -206,6 +216,18 @@ async function main() {
             res.status(400)
             res.send(e.details && e.details.length ? e.details : e.message);
         }
+    })
+
+    app.get("/disconnect", async (req, res) => {
+        const user = req.headers["x-user"] as string
+        console.log(users, user)
+        if (user && users[user]) {
+            users[user]=null
+            res.send("disconnected")
+        } else {
+            res.status(400).send(`No user ${user} to disconnect`)
+        }
+        
     })
 
     const server = app.listen(
