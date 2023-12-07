@@ -108,23 +108,23 @@ async function registerUser(adminName, username) {
 
 
 
-        const registrarUserResponse = await fabricCAServices.enroll({
+        /* const registrarUserResponse = await fabricCAServices.enroll({
             enrollmentID: ca.registrar.enrollId,
             enrollmentSecret: ca.registrar.enrollSecret
-        });
+        }); */
 
-        console.log('registrar',  registrarUserResponse.certificate)
+        /* console.log('registrar',  registrarUserResponse.certificate)
         console.log('adminIDnetity', adminIdentity.credentials.certificate )
 
         console.log('registrar',  registrarUserResponse.key.toBytes())
-        console.log('adminIDnetity', adminIdentity.credentials.privateKey )
+        console.log('adminIDnetity', adminIdentity.credentials.privateKey ) */
 
         const registrar = User.createUser(
             ca.registrar.enrollId,
             ca.registrar.enrollSecret,
             mspID,
-            registrarUserResponse.certificate,
-            registrarUserResponse.key.toBytes()
+            adminIdentity.credentials.certificate,
+            adminIdentity.credentials.privateKey
         );
 
 
@@ -158,4 +158,40 @@ async function registerUser(adminName, username) {
     }
 }
 
-registerUser("admin", "test4-org1")
+registerUser("ca-admin", "test5-org1")
+
+async function caAdmin() {
+    const networkConfigPath = "../../tienda2.yaml"
+        const mspID = "Org1MSP"
+        const caName="org1-ca.tienda"
+        const walletPath = "./WALLETS/wallet1"
+        const wallet = await Wallets.newFileSystemWallet(walletPath)
+        const networkConfig= yaml.parse(fs.readFileSync(networkConfigPath, {encoding: 'utf-8'}))
+
+        const ca = networkConfig.certificateAuthorities[caName]
+        if (!ca) {
+            throw new Error(`Certificate authority ${config.caName} not found in network configuration`);
+        }
+        const caURL = ca.url;
+        if (!caURL) {
+            throw new Error(`Certificate authority ${config.caName} does not have a URL`);
+        }
+
+        const fabricCAServices = new FabricCAservices(caURL, {
+            trustedRoots: [ca.tlsCACerts.pem[0]],
+            verify: true,
+        }, ca.caName)
+
+        const enrollment = await fabricCAServices.enroll({ enrollmentID: 'enroll', enrollmentSecret: 'enrollpw' });
+        const x509Identity = {
+        credentials: {
+            certificate: enrollment.certificate,
+            privateKey: enrollment.key.toBytes(),
+          },
+        mspId: 'Org1MSP',
+        type: 'X.509',
+        };
+        await wallet.put('ca-admin', x509Identity);
+}
+
+//caAdmin()

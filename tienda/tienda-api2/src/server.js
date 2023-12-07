@@ -52,7 +52,39 @@ checkConfig()
 
 const ccpFileYaml = yaml.parse(fs.readFileSync(config.networkConfigPath, {encoding: 'utf-8'}))
         
+async function init() { // We enroll an admin user with the CA and save its credentials when we launch the API
+    const wallet = await Wallets.newFileSystemWallet(config.walletPath)
+        
 
+    const ca = ccpFileYaml.certificateAuthorities[config.caName]
+    if (!ca) {
+        throw new Error(`Certificate authority ${config.caName} not found in network configuration`);
+    }
+    const caURL = ca.url;
+    if (!caURL) {
+        throw new Error(`Certificate authority ${config.caName} does not have a URL`);
+    }
+
+    const fabricCAServices = new FabricCAservices(caURL, {
+        trustedRoots: [ca.tlsCACerts.pem[0]],
+        verify: true,
+    }, ca.caName)
+
+    const enrollment = await fabricCAServices.enroll({
+        enrollmentID: ca.registrar.enrollId,
+        enrollmentSecret: ca.registrar.enrollSecret
+    });
+    const x509Identity = {
+    credentials: {
+        certificate: enrollment.certificate,
+        privateKey: enrollment.key.toBytes(),
+        },
+    mspId: config.mspID,
+    type: 'X.509',
+    };
+    await wallet.put('ca-admin', x509Identity);
+}
+init()
 
 async function connectGateway(user, gateway) {
     try {
@@ -134,17 +166,19 @@ app.post('/registeruser', async (req, res) => {
                 return;
             }
 
-            const registrarUserResponse = await fabricCAServices.enroll({
+            const adminIdentity = await wallet.get('ca-admin');
+
+            /* const registrarUserResponse = await fabricCAServices.enroll({
                 enrollmentID: ca.registrar.enrollId,
                 enrollmentSecret: ca.registrar.enrollSecret
-            });
+            }); */
 
             const registrar = User.createUser(
                 ca.registrar.enrollId,
                 ca.registrar.enrollSecret,
                 config.mspID,
-                registrarUserResponse.certificate,
-                registrarUserResponse.key.toBytes()
+                adminIdentity.credentials.certificate,
+                adminIdentity.credentials.privateKey
             );
 
 
