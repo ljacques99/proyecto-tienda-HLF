@@ -5,6 +5,8 @@ var yaml =require("yaml")
 var fs= require("fs")
 const cors = require("cors")
 const _ =require("lodash")
+var FabricCAservices = require('fabric-ca-client')
+var {User} = require('fabric-common')
 
 var app = express();
 app.use(bodyParser.json());
@@ -38,12 +40,34 @@ function checkConfig() {
     if (!config.hlfUser) {
         throw new Error("HLF_USER is not set");
     }
+    if (!config.walletPath) {
+        throw new Error("WALLETPATH is not set");
+    }
     if (!config.networkConfigPath) {
         throw new Error("NETWORK_CONFIG_PATH is not set");
     }
 }
 
 checkConfig()
+
+const ccpFileYaml = yaml.parse(fs.readFileSync(config.networkConfigPath, {encoding: 'utf-8'}))
+        
+
+
+async function connectGateway(user, gateway) {
+    try {
+        const wallet = await Wallets.newFileSystemWallet(config.walletPath)
+        await gateway.connect(ccpFileYaml, {identity: user, wallet: wallet} )
+
+        const network = await gateway.getNetwork("tienda")
+
+        const contract= network.getContract("tienda-dev")
+
+        return contract
+    } catch(error) {
+        throw new Error(error)
+    }
+}
 
 app.get('/test', async (req, res) => {
     res.send("test OK")
@@ -84,19 +108,83 @@ app.post('/id', async (req, res) => {
     }
 })
 
+app.post('/registeruser', async (req, res) => {
+    const wallet = await Wallets.newFileSystemWallet(config.walletPath)
+    try {
+        const username = req.body.user
+
+        const ca = ccpFileYaml.certificateAuthorities[config.caName]
+            if (!ca) {
+                throw new Error(`Certificate authority ${config.caName} not found in network configuration`);
+            }
+            const caURL = ca.url;
+            if (!caURL) {
+                throw new Error(`Certificate authority ${config.caName} does not have a URL`);
+            }
+
+            const fabricCAServices = new FabricCAservices(caURL, {
+                trustedRoots: [ca.tlsCACerts.pem[0]],
+                verify: true,
+            }, ca.caName)
+
+            // Check to see if we've already enrolled the user.
+            const userExists = await wallet.get(username);
+            if (userExists) {
+                console.log('An identity for the user \"', username, '\" already exists in the wallet');
+                return;
+            }
+
+            const registrarUserResponse = await fabricCAServices.enroll({
+                enrollmentID: ca.registrar.enrollId,
+                enrollmentSecret: ca.registrar.enrollSecret
+            });
+
+            const registrar = User.createUser(
+                ca.registrar.enrollId,
+                ca.registrar.enrollSecret,
+                config.mspID,
+                registrarUserResponse.certificate,
+                registrarUserResponse.key.toBytes()
+            );
+
+
+            const secret = await fabricCAServices.register({
+                enrollmentID: username,
+                affiliation: "",
+                role: "client",
+                attrs: [],
+                maxEnrollments: -1
+            }, registrar)
+
+            const enrollment = await fabricCAServices.enroll({
+                enrollmentID: username,
+                enrollmentSecret: secret,
+            })
+            
+            const userIdentity = { // type X509Identity if typescript file
+                credentials: {
+                    certificate: enrollment.certificate,
+                    privateKey: enrollment.key.toBytes()
+                },
+                mspId: config.mspID,
+                type: "X.509"
+            }
+            await wallet.put(username, userIdentity);
+            console.log('Successfully registered and enrolled client user \"', username, '\" and imported it into the wallet');
+            res.send(`Successfully registered and enrolled client user  ${username} and imported it into the wallet`)
+        } catch(error) {
+            console.error(`Failed to register user ${username}`);
+            res.status(500).json({error: error});
+        }
+})
+
 app.post('/consult', async (req, res) => {
     const gateway = new Gateway();
     try {
         const fcn = req.body.fcn
         const user = req.body.user
-        const ccpFileYaml = yaml.parse(fs.readFileSync(config.networkConfigPath, {encoding: 'utf-8'}))
-        
-        const wallet = await Wallets.newFileSystemWallet(config.walletPath)
-        await gateway.connect(ccpFileYaml, {identity: user, wallet: wallet} )
 
-        const network = await gateway.getNetwork("tienda");
-
-        const contract= network.getContract("tienda-dev")
+        const contract = await connectGateway(user, gateway)
 
         const result = await contract.evaluateTransaction(fcn, ...(req.body.args || []))
         console.log("result", result.toString())
@@ -116,14 +204,8 @@ app.post('/submit', async (req, res) => {
     try {
         const fcn = req.body.fcn
         const user = req.body.user
-        const ccpFileYaml = yaml.parse(fs.readFileSync(config.networkConfigPath, {encoding: 'utf-8'}))
-        
-        const wallet = await Wallets.newFileSystemWallet(config.walletPath)
-        await gateway.connect(ccpFileYaml, {identity: user, wallet: wallet} )
 
-        const network = await gateway.getNetwork("tienda");
-
-        const contract= network.getContract("tienda-dev")
+        const contract = await connectGateway(user, gateway)
 
         console.log("deuxime arguement", req.body.args[1])
 
