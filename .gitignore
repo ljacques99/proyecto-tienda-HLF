@@ -10,3 +10,4 @@ tienda/tienda-chaincode/metadata.json
 tienda/tienda-api/node_modules
 tienda/tienda-api2/node_modules
 tienda/tienda-api2/WALLETS
+tienda/tienda-sol/contract-details.json
