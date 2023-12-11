@@ -369,7 +369,7 @@ export async function Mint(ctx: Context, address: string, nonce: string) {
     const alreadyCredited = await ctx.stub.getState(depositKey);
 
     if(alreadyCredited && alreadyCredited.length>0) {
-        throw new Error ('Transaction cannot only be credited once')
+        throw new Error ('Transaction can only be credited once')
     }
 
     const provider = new ethers.providers.JsonRpcProvider(providerURL)
@@ -438,10 +438,10 @@ export async function Burn(ctx: Context, amount: string) {
     //await CheckInitialized(ctx);
 
     // Check minter authorization - this sample assumes Org1 is the central banker with privilege to burn tokens
-    const clientMSPID = ctx.clientIdentity.getMSPID();
+    /* const clientMSPID = ctx.clientIdentity.getMSPID();
     if (clientMSPID !== 'Org1MSP') {
         throw new Error('client is not authorized to mint new tokens');
-    }
+    } */
 
     const minter = ctx.clientIdentity.getID();
 
