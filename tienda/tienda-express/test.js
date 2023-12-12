@@ -29,7 +29,7 @@ async function connect() {
 
     console.log(test)
 
-    let tx = await contract.getTx("0x40851aB11dB65A1B6fa545AAF541F2B016102a38", 3) //.then(res => parseInt(res,10)).then(res => ethers.utils.formatEther(res))
+    let tx = await contract.getTx("0x40851aB11dB65A1B6fa545AAF541F2B016102a38", 2).then(res => parseInt(res,10))//.then(res => ethers.utils.formatEther(res))
     console.log(tx)
     return
 }

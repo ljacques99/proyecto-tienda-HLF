@@ -12,6 +12,8 @@ const { Contract } = require('fabric-contract-api');
 const balancePrefix = 'balance';
 const allowancePrefix = 'allowance';
 const depositPrefix= 'deposit';
+const burnPrefix= "burn";
+const lastNoncePrefix="lastNonce";
 
 // Define key names for options
 const nameKey = 'name';
@@ -89,7 +91,7 @@ class TokenERC20Contract extends Contract {
     async TotalSupply(ctx: Context) {
 
         // Check contract options are already set first to execute the function
-        //await this.CheckInitialized(ctx);
+        await this.CheckInitialized(ctx);
 
         const totalSupplyBytes = await ctx.stub.getState(totalSupplyKey);
         const totalSupply = parseInt(totalSupplyBytes.toString());
@@ -106,7 +108,7 @@ class TokenERC20Contract extends Contract {
     async BalanceOf(ctx: Context, owner: string) {
 
         // Check contract options are already set first to execute the function
-        //await this.CheckInitialized(ctx);
+        await this.CheckInitialized(ctx);
 
         const balanceKey = ctx.stub.createCompositeKey(balancePrefix, [owner]);
 
@@ -131,7 +133,7 @@ class TokenERC20Contract extends Contract {
     async Transfer(ctx: Context, to: string, value: string) {
 
         // Check contract options are already set first to execute the function
-        //await this.CheckInitialized(ctx);
+        await this.CheckInitialized(ctx);
 
         const from = ctx.clientIdentity.getID();
 
@@ -346,7 +348,7 @@ class TokenERC20Contract extends Contract {
     async Mint(ctx: Context, address: string, nonce: string) {
 
         // Check contract options are already set first to execute the function
-        //await CheckInitialized(ctx);
+        await this.CheckInitialized(ctx);
 
         // Check minter authorization - this sample assumes Org1 is the central banker with privilege to mint new tokens
         /* const clientMSPID = ctx.clientIdentity.getMSPID();
@@ -377,15 +379,15 @@ class TokenERC20Contract extends Contract {
         const contract = new ethers.Contract(contractAddress, ABI, provider)
 
         // !!!!! ADD a test of address and user
-        let amount 
+        let amountInt 
         try {
-            const amount = await contract.getTx(address, nonce)
-            console.log('amount in big', amount)
+            amountInt = await contract.getTx(address, nonce).then(res => parseInt(res,10))
+            //console.log('amount in big', amount)
         } catch (e) {
             throw new Error('Unable to find matching deposit')
         }
         
-        const amountInt = parseInt(amount, 10)
+        //const amountInt = parseInt(amount, 10)
         console.log("amount to credit", amountInt)
 
         const balanceKey = ctx.stub.createCompositeKey(balancePrefix, [minter]);
@@ -435,7 +437,7 @@ class TokenERC20Contract extends Contract {
     async Burn(ctx: Context, amount: string) {
 
         // Check contract options are already set first to execute the function
-        //await CheckInitialized(ctx);
+        await this.CheckInitialized(ctx);
 
         // Check minter authorization - this sample assumes Org1 is the central banker with privilege to burn tokens
         /* const clientMSPID = ctx.clientIdentity.getMSPID();
@@ -470,8 +472,28 @@ class TokenERC20Contract extends Contract {
         const transferEvent = { from: minter, to: '0x0', value: amountInt };
         ctx.stub.setEvent('Transfer', Buffer.from(JSON.stringify(transferEvent)));
 
+        const lastNonceKey = ctx.stub.createCompositeKey(lastNoncePrefix, [minter]);
+        let lastNonce = await ctx.stub.getState(lastNonceKey)
+        let lastNonceInt: number
+        if (!lastNonce || lastNonce.length===0) {
+            lastNonceInt = 0
+        } else {
+            lastNonceInt = parseInt(lastNonce.toString())
+        }
+
+        const nonce = lastNonceInt+1
+
+        const burnState = {
+            amountInt,
+            withdrawn: false
+        }
+
+        const burnKey = ctx.stub.createCompositeKey(burnPrefix, [minter + nonce.toString()]);
+        await ctx.stub.putState(burnKey, Buffer.from(JSON.stringify(burnState)))
+        await ctx.stub.putState(lastNonceKey, Buffer.from(nonce.toString()))
+
         console.log(`minter account ${minter} balance updated from ${currentBalance} to ${updatedBalance}`);
-        return true;
+        return nonce;
     }
 
     /**
@@ -517,6 +539,51 @@ class TokenERC20Contract extends Contract {
         if (!nameBytes || nameBytes.length === 0) {
             throw new Error('contract options need to be set before calling any function, call Initialize() to initialize contract');
         }
+    }
+
+    async getBurnAmount(ctx : Context, user: string, nonce: string) {
+        // user admin only
+        const minter = user // verify when authentification
+        const burnKey = ctx.stub.createCompositeKey(burnPrefix, [minter + nonce]);
+        const burnState = await ctx.stub.getState(burnKey)
+        if (!burnState || burnState.length ===0) {
+            throw new Error ("No such burn transaction")
+        }
+
+        const burnStateJson = JSON.parse(Buffer.from(burnState).toString())
+
+        if (burnStateJson.withdrawn) {
+            throw new Error ("Already withdrawn")
+        }
+        
+        return burnStateJson.amountInt
+                
+    }
+
+    async registerWithdrawn(ctx : Context, user: string, nonce: string) {
+        // user admin only
+        const minter = user // verify when authentification
+        const burnKey = ctx.stub.createCompositeKey(burnPrefix, [minter + nonce]);
+        const burnState = await ctx.stub.getState(burnKey)
+        if (!burnState || burnState.length ===0) {
+            throw new Error ("No such burn transaction")
+        }
+
+        const burnStateJson = JSON.parse(Buffer.from(burnState).toString())
+
+        if (burnStateJson.withdrawn) {
+            throw new Error ("Already withdrawn")
+        }
+        
+        const newBurnState = {
+            amountInt: burnStateJson.amountInt,
+            withdrawn: true
+        }
+
+        await ctx.stub.putState(burnKey, Buffer.from(JSON.stringify(newBurnState)))
+
+        return true
+                
     }
 
     // add two number checking for overflow
