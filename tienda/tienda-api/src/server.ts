@@ -19,6 +19,9 @@ const cors = require("cors")
 
 const log = new Logger({ name: "tienda-api" })
 
+const tiendaContractName= "TiendaContract"
+const tokenContractName="TokenERC20Contract"
+
 
 async function main() {
     checkConfig()
@@ -74,7 +77,7 @@ async function main() {
     );
     
     const grpcConn = await newGrpcConnection(peerUrl, Buffer.from(peerCACert))
-    let contract=null // to quit when untoggle comment
+    
 
     /* const adminUser = _.get(networkConfig, `organizations.${config.mspID}.users.${config.hlfUser}`)
     const userCertificate = _.get(adminUser, "cert.pem")
@@ -153,8 +156,20 @@ async function main() {
             res.send(e.details && e.details.length ? e.details : e.message);
         }
     })
+
+    app.get("/disconnect", async (req, res) => {
+        const user = req.headers["x-user"] as string
+        console.log(users, user)
+        if (user && users[user]) {
+            users[user]=null
+            res.send("disconnected")
+        } else {
+            res.status(400).send(`No user ${user} to disconnect`)
+        }
+        
+    })
+
     app.use( /^(\/.+|(?!\/signup|\/login|\/disconnect).*)$/, async (req, res, next) => {
-        (req as any).contract = contract
         try {
             console.log("cookie",req.cookies["cookiedehlftienda"])
             const token1= req.cookies["cookiedehlftienda"]
@@ -186,7 +201,7 @@ async function main() {
                 const gateway = connect(connectOptions);
                 const network = gateway.getNetwork(config.channelName);
                 const contract = network.getContract(config.chaincodeName);
-                (req as any).contract = contract
+                (req as any).network = network
             } else {
                 throw new Error(`El usuario ${user} no existe`)
             } 
@@ -199,7 +214,8 @@ async function main() {
     })
     app.get("/ping", async (req, res) => {
         try {
-            const responseBuffer = await (req as any).contract.evaluateTransaction("Ping");
+            const contract = (req as any).network.getContract(config.chaincodeName, tiendaContractName);
+            const responseBuffer = await contract.evaluateTransaction("Ping");
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {
@@ -209,7 +225,8 @@ async function main() {
     })
     app.get("/id", async (req, res) => {
         try {
-            const responseBuffer = await (req as any).contract.evaluateTransaction("getMyIdentity");
+            const contract = (req as any).network.getContract(config.chaincodeName, tiendaContractName);
+            const responseBuffer = await contract.evaluateTransaction("getMyIdentity");
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {
@@ -222,7 +239,8 @@ async function main() {
     app.post("/consult", async (req, res) => {
         try {
             const fcn = req.body.fcn
-            const responseBuffer = await (req as any).contract.evaluateTransaction(fcn, ...(req.body.args || []));
+            const contract = (req as any).network.getContract(config.chaincodeName, tiendaContractName);
+            const responseBuffer = await contract.evaluateTransaction(fcn, ...(req.body.args || []));
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {
@@ -234,7 +252,8 @@ async function main() {
     app.post("/submit", async (req, res) => {
         try {
             const fcn = req.body.fcn
-            const responseBuffer = await (req as any).contract.submitTransaction(fcn, ...(req.body.args || []));
+            const contract = (req as any).network.getContract(config.chaincodeName, tiendaContractName);
+            const responseBuffer = await contract.submitTransaction(fcn, ...(req.body.args || []));
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {
@@ -243,17 +262,33 @@ async function main() {
         }
     })
 
-    app.get("/disconnect", async (req, res) => {
-        const user = req.headers["x-user"] as string
-        console.log(users, user)
-        if (user && users[user]) {
-            users[user]=null
-            res.send("disconnected")
-        } else {
-            res.status(400).send(`No user ${user} to disconnect`)
+    app.post("/token/consult", async (req, res) => {
+        try {
+            const fcn = req.body.fcn
+            const contract = (req as any).network.getContract(config.chaincodeName, tokenContractName);
+            const responseBuffer = await contract.evaluateTransaction(fcn, ...(req.body.args || []));
+            const responseString = Buffer.from(responseBuffer).toString();
+            res.send(responseString);
+        } catch (e) {
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
         }
-        
     })
+
+    app.post("/token/submit", async (req, res) => {
+        try {
+            const fcn = req.body.fcn
+            const contract = (req as any).network.getContract(config.chaincodeName, tokenContractName);
+            const responseBuffer = await contract.submitTransaction(fcn, ...(req.body.args || []));
+            const responseString = Buffer.from(responseBuffer).toString();
+            res.send(responseString);
+        } catch (e) {
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
+        }
+    })
+
+    
 
     const server = app.listen(
         {

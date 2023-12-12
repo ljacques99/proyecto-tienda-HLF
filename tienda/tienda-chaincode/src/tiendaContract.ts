@@ -5,8 +5,6 @@ export const UUID_NAMESPACE = "1b671a64-40d5-491e-99b0-da01ff1f3341";
 
 const { Contract } = require("fabric-contract-api");
 
-import { Initialize, Mint, Burn, TotalSupply, Transfer, BalanceOf} from "./tokenERC20";
-
 
 // Definir nombres de tipo de objeto para el prefijo
 const customerPrefix = "customer";
@@ -25,36 +23,6 @@ const ALLOWED_MSPS_MERCHANT = ["Org1MSP"];
 const ALLOWED_MSPS_CLIENT = ["Org2MSP"];
 
 class TiendaContract extends Contract {
-  
-  async Initialize (ctx: Context, name: string, symbol: string, decimals: string) {
-    return Initialize(ctx, name, symbol, decimals)
-  }
-
-  async Mint (ctx: Context, address: string, nonce: string) {
-    return Mint(ctx, address, nonce)
-  }
-
-  async Burn (ctx: Context, amount: string) {
-    return Burn(ctx, amount)
-  }
-
-  async TotalSupply (ctx: Context) {
-    return TotalSupply(ctx)
-  }
-
-  async checkInit (ctx: Context) {
-    const nameBytes = await ctx.stub.getState('name');
-    return nameBytes
-  }
-
-  async Transfer (ctx:Context, to: string, value: string) {
-    return Transfer(ctx, to, value)
-  }
-
-  async BalanceOf (ctx: Context, owner: string) {
-    return BalanceOf(ctx, owner)
-  }
-
 
   async getMyIdentity(ctx: Context) {
 
@@ -63,6 +31,7 @@ class TiendaContract extends Contract {
       mspId: ctx.clientIdentity.getMSPID(),
     };
   }
+  
   async Ping(ctx: Context) {
     log.info("ping");
     return "pong";
