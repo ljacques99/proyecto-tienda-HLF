@@ -27,6 +27,8 @@ const ethers = require('ethers')
 const contractAddress = fs.readFileSync("../tienda-sol/contract-address.txt").toString()
 const providerURL="https://rpc-mumbai.maticvigil.com/"
 
+const conversionRate = 1 // number of tokens per ethers
+
 
 const ABI = JSON.parse(fs.readFileSync("../tienda-sol/contract.abi").toString())
 
@@ -342,7 +344,8 @@ class TokenERC20Contract extends Contract {
      * Mint creates new tokens and adds them to minter's account balance
      *
      * @param {Context} ctx the transaction context
-     * @param {Integer} amount amount of tokens to be minted
+     * @param {string} address address from which ethers were deposited
+     * @param {string} nonce nonce of the deposit
      * @returns {Object} The balance
      */
     async Mint(ctx: Context, address: string, nonce: string) {
@@ -381,7 +384,7 @@ class TokenERC20Contract extends Contract {
         // !!!!! ADD a test of address and user
         let amountInt 
         try {
-            amountInt = await contract.getTx(address, nonce).then(res => parseInt(res,10))
+            amountInt = await contract.getTx(address, nonce).then(res => parseInt(res,10) * conversionRate)
             //console.log('amount in big', amount)
         } catch (e) {
             throw new Error('Unable to find matching deposit')
@@ -432,7 +435,7 @@ class TokenERC20Contract extends Contract {
      *
      * @param {Context} ctx the transaction context
      * @param {Integer} amount amount of tokens to be burned
-     * @returns {Object} The balance
+     * @returns {Object} The balance + user's burn nonce
      */
     async Burn(ctx: Context, amount: string) {
 
@@ -555,8 +558,10 @@ class TokenERC20Contract extends Contract {
         if (burnStateJson.withdrawn) {
             throw new Error ("Already withdrawn")
         }
+
+        const amount = burnStateJson.amountInt/conversionRate
         
-        return burnStateJson.amountInt
+        return amount
                 
     }
 

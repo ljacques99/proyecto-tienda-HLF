@@ -16,11 +16,23 @@ import { newGrpcConnection, newConnectOptions } from './utils';
 var cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
 const cors = require("cors")
+const ethers = require("ethers")
 
 const log = new Logger({ name: "tienda-api" })
 
 const tiendaContractName= "TiendaContract"
 const tokenContractName="TokenERC20Contract"
+
+const withdrawFee = 0.01 // part of the withdrawal taken as fee (between 0 & 1)
+
+const providerURL="https://rpc-mumbai.maticvigil.com/" //address of the connection to the network where solidity smart contract is deployed
+const chainId = 80001 // chain ID of network of smart contract
+
+const contractFilePath = "../tienda-sol/contract-address.txt"
+const ABIFile = "../tienda-sol/contract.abi"
+const ownerFilePath = "../tienda-sol/contract-details.json" //json file with owner address and private key
+
+
 
 
 async function main() {
@@ -105,30 +117,84 @@ async function main() {
         next();
     });
 
-    
+    if(withdrawFee<0 || withdrawFee>1) {
+        throw new Error ("Withdrawal fee must be between 0 and 1")
+    }
+
+    const contractAddress =Buffer.from(await fs.readFile(contractFilePath)).toString()
+    const ABI = JSON.parse(await fs.readFile(ABIFile, 'utf8'))
+
+    const ownerData = await fs.readFile(ownerFilePath,'utf8') 
+    const owner=JSON.parse(ownerData) 
+   //const provider = new ethers.providers.WebSocketProvider("wss://rpc-mumbai.maticvigil.com/ws/v1/5a57fae47ff525cc2f117eb4a1d99f7ac3674f0d")
+    const provider = new ethers.providers.JsonRpcProvider(providerURL)
+    const signer = new ethers.Wallet(owner.ownerPrivateKey,provider)
+    const contractETH = new ethers.Contract(contractAddress, ABI, signer)
+
 
     app.post("/withdraw", async (req, res) => {
         try { // args = user and nonce
+
+            //gat amount to pay from chaincode
             const amountBuffer = await contract.evaluateTransaction("getBurnAmount", ...(req.body.args || []));
-            const amount = parseInt(Buffer.from(amountBuffer).toString());
+            const amountTotal = Number(Buffer.from(amountBuffer).toString());
+            const amount = Math.trunc(amountTotal*(1-withdrawFee))
+            const fee = amountTotal - amount
 
             console.log("amount to withdraw", amount)
 
+            const to = "0x9F7f7E43BCc5E55981148c8A75c26A84F0Be118A" // put address of the user in args
+
+            // send money to user
+            const txUnsigned = await contractETH.populateTransaction.withdraw(amount, to)
+            txUnsigned.gasLimit = await contractETH.estimateGas.withdraw(amount, to)
+            txUnsigned.chainId = chainId
+            txUnsigned.gasPrice = provider.getGasPrice() // put a fixed amount
+            txUnsigned.nonce = await provider.getTransactionCount(owner.ownerAddress)
+          
+
+            const txSigned = await signer.signTransaction(txUnsigned)
+            const tx = await provider.sendTransaction(txSigned)
+
+            console.log("transaction sent", tx)
+            
+            const receipt = await tx.wait()
+
+            console.log("transaction receipt", receipt)
+
+            if (receipt.status === 0) {
+                throw new Error("MATIC transaction failed")
+                return
+            }
+
+            //write in chaincode than money was paid
+
             const responseBuffer = await contract.submitTransaction("registerWithdrawn", ...(req.body.args || []));
             const responseString = Buffer.from(responseBuffer).toString();
-            res.send(responseString);
-        } catch (e) {
-            res.status(400)
-            res.send(e.details && e.details.length ? e.details : e.message);
-        }
-    })
 
-    app.post("/token/submit", async (req, res) => {
-        try {
-            const fcn = req.body.fcn
-            const contract = (req as any).network.getContract(config.chaincodeName, tokenContractName);
-            const responseBuffer = await contract.submitTransaction(fcn, ...(req.body.args || []));
-            const responseString = Buffer.from(responseBuffer).toString();
+            // pay fee
+
+            const feeUnsigned = await contractETH.populateTransaction.addFees(fee)
+            feeUnsigned.gasLimit = await contractETH.estimateGas.addFees(fee)
+            feeUnsigned.chainId = chainId
+            feeUnsigned.gasPrice = provider.getGasPrice() // put a fixed amount
+            feeUnsigned.nonce = await provider.getTransactionCount(owner.ownerAddress)
+          
+
+            const feeSigned = await signer.signTransaction(feeUnsigned)
+            const feeTx = await provider.sendTransaction(feeSigned)
+
+            console.log("transaction sent for fees", feeTx)
+            
+            const feeReceipt = await feeTx.wait()
+
+            console.log("fee receipt", feeReceipt)
+
+            if (feeReceipt.status === 0) {
+                throw new Error("fee transaction failed")
+                return
+            }
+
             res.send(responseString);
         } catch (e) {
             res.status(400)
