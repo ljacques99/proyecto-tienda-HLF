@@ -15,6 +15,7 @@ async function main() {
     app.use(cors());
     app.use(cookieParser());
 
+    // middleware con un Bearer que solo el Server conoce propio JWT
     app.use('/auth', authRoutes);
 
     app.use(authMiddleware)

@@ -90,8 +90,15 @@ class AuthService {
             // const userIsLoggedIn = getUser(user.id)
 
             const identity = await UserIdentityService.getUserIdentity(user.id)
+            
             if (!identity) {
-                // hacer revoke y regiser
+                // hacer revoke y regiser - keep track on side DB using boolean revoke to match when findUserByWalletAddress
+                // const email = user.attrs.find(attr => attr.name === 'email')
+                // const walletAddress = user.attrs.find(attr => attr.name === 'walletAddress')
+                // const newUsername = await UserIdentityService.revokeIdentityWithAddress(user.id, email.value, walletAddress.value)
+                // const token = createToken({ username: newUsername, mspID: config.mspID, walletAddress: walletAddress });
+                // return { token };
+                throw new Error('This user and wallet has been deprecated')
             }
             
             // addUser(user.id, { isConnected: true })

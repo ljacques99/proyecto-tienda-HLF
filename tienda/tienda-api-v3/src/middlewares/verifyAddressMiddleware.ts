@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ethers } from 'ethers';
-import { verifyToken } from '../utils/jwtUtils'; // Asegúrate de que esta importación sea correcta
+import { verifyToken } from '../utils/jwtUtils';
 import { jwtDecode } from "jwt-decode"
 
 export function verifyAddressMiddleware(req: Request, res: Response, next: NextFunction) {

@@ -1,27 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwtUtils';
-import { config } from '../config'
-import { getUser } from '../utils/userUtils';
+import { connectGateway } from '../utils/gatewayUtils';
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader) {
             return res.status(401).send('Access Denied: No token provided');
         }
 
-        const token = authHeader.split(' ')[1];
+        const token = authHeader.split(' ')[0]; // [1] if Auth = Bearer eYJhb....
         const decoded = verifyToken(token);
+        // const decoded = jwtDecode(token)
 
-        // req.user = decoded;
-        // if(decoded && decoded.mspID != config.mspID) {
-        //     res.status(401).send("EL usuario no partenece a esta organizacion")
-        //     return
-        // }
+        if (!decoded || !decoded.walletAddress) {
+            return res.status(401).send('Invalid token');
+        }
 
-        next();
+        (req as any).contract = await connectGateway(decoded.username)
+
+        next()
+
     } catch (error) {
-        res.status(400).send('Invalid token');
+        res.status(400).send(error);
     }
 }
 

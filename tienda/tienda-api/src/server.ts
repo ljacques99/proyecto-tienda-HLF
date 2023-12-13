@@ -74,7 +74,7 @@ async function main() {
     );
     
     const grpcConn = await newGrpcConnection(peerUrl, Buffer.from(peerCACert))
-    let contract=null // to quit when untoggle comment
+    let contract = null // to quit when untoggle comment
 
     /* const adminUser = _.get(networkConfig, `organizations.${config.mspID}.users.${config.hlfUser}`)
     const userCertificate = _.get(adminUser, "cert.pem")
@@ -104,11 +104,28 @@ async function main() {
 
     const users = {}
     app.post("/signup", async (req, res) => {
-        const { username, password } = req.body
+        const { username, password, email, walletAddress } = req.body
         let identityFound = null
+        // return console.log({
+        //     "username": username,
+        //     "password": password,
+        //     "email": email,
+        //     "walletAddress": walletAddress
+        // })
         try {
             identityFound = await identityService.getOne(username, registrar)
         } catch (e) {
+            await fabricCAServices.register({
+                enrollmentID: username,
+                enrollmentSecret: password,
+                affiliation: "",
+                role: "client",
+                attrs: [
+                    { name: "walletAddress", value: walletAddress, ecert: true },
+                    { name: "email", value: email, ecert: true }
+                ],
+                maxEnrollments: -1
+            }, registrar)
             log.info("Identity not found, registering", e)
         }
         if (identityFound) {
@@ -116,14 +133,7 @@ async function main() {
             res.send("Username already taken")
             return
         }
-        await fabricCAServices.register({
-            enrollmentID: username,
-            enrollmentSecret: password,
-            affiliation: "",
-            role: "client",
-            attrs: [],
-            maxEnrollments: -1
-        }, registrar)
+        
         res.send("OK")
     })
     app.post("/login", async (req, res) => {
@@ -142,41 +152,42 @@ async function main() {
                 enrollmentID: username,
                 enrollmentSecret: password,
             })
-            users[username] = r
+            // users[username] = r
+            users[walletAddress] = true
             let token = jwt.sign({
                 username,
                 mspID: config.mspID
-            }, 'este-es-el-seed', {expiresIn: '48h'})
+            }, 'este-es-el-seed', { expiresIn: '48h' })
             res.cookie("cookieDeHLFtienda", token, {maxAge:900000}).send(token)
         } catch(e) {
             res.status(400)
             res.send(e.details && e.details.length ? e.details : e.message);
         }
     })
-    app.use( /^(\/.+|(?!\/signup|\/login|\/disconnect).*)$/, async (req, res, next) => {
+    app.use( '/', async (req, res, next) => {
         (req as any).contract = contract
         try {
-            console.log("cookie",req.cookies["cookiedehlftienda"])
-            const token1= req.cookies["cookiedehlftienda"]
+            console.log("cookie", req.cookies["cookiedehlftienda"])
+            const token1 = req.cookies["cookiedehlftienda"]
             const token2 = req.headers["authorization"]
             console.log('token', token2)
-            if(token1 && token2 && token1!=token2) {
+            if(token1 && token2 && token1 != token2) {
                 res.status(401).send("Los dos tokens son diferentes")
                 return
             }
             const token = token1 || token2
 
-            if(!token) return res.status(401).json('Unauthorize user')
-            const decoded = jwt.verify(token,'este-es-el-seed');
-            console.log("decoded", decoded)
-            if(decoded.mspID!=config.mspID) {
-                res.status(401).send("EL usuario no partenece a esta organizacion")
-                return
-            }
-            const user= decoded.username
-            //const user = req.headers["x-user"] as string
-            console.log(users, user)
-            if (user && users[user]) {
+            //if(!token) return res.status(401).json('Unauthorize user')
+            // const decoded = !token ? null : jwt.verify(token,'este-es-el-seed');
+            // console.log("decoded", decoded)
+            // if(decoded && decoded.mspID != config.mspID) {
+            //     res.status(401).send("EL usuario no partenece a esta organizacion")
+            //     return
+            // }
+            // const user = decoded.username
+            // const user = req.headers["x-user"] as string
+            // console.log(users, user)
+            if (user && users[walletAdress]) {
                 const connectOptions = await newConnectOptions(
                     grpcConn,
                     config.mspID,
@@ -205,6 +216,37 @@ async function main() {
         } catch (e) {
             res.status(400)
             res.send(e.details && e.details.length ? e.details : e.message);
+        }
+    })
+    app.post("/whois", async (req, res) => {
+        const { walletAddress } = req.body
+        let identityFound = null
+        try {
+            // identityFound = await identityService.getOne(username, registrar)
+            identityFound = await identityService.getAll(registrar)
+            // function findUserByWalletAddress(users, walletAddress) {
+            //     // Iterar sobre la lista de usuarios
+            //     const address = walletAddress.toLowerCase()
+            //     for (const user of users) {
+            //         // Revisar si el usuario tiene el atributo 'walletAddress'
+            //         const walletAttr = user.attrs.find(attr => attr.name === 'walletAddress' && attr.value === address);
+            //         if (walletAttr) {
+            //             // Si se encuentra la walletAddress, retornar el usuario
+            //             return user;
+            //         }
+            //     }
+            //     // Retornar null si no se encuentra ningún usuario con esa walletAddress
+            //     return null;
+            // }
+            // const users = identityFound.result.identities
+            // const result = findUserByWalletAddress(users, walletAddress)
+            // identityFound = await identityService.getOne(result.id, registrar)
+            res.send(identityFound)
+        } catch (e) {
+            log.info("Identity not found, registering", e)
+            res.status(400)
+            res.send("Username not found")
+            return
         }
     })
     app.get("/id", async (req, res) => {
@@ -247,7 +289,7 @@ async function main() {
         const user = req.headers["x-user"] as string
         console.log(users, user)
         if (user && users[user]) {
-            users[user]=null
+            users[walletAdress]=false
             res.send("disconnected")
         } else {
             res.status(400).send(`No user ${user} to disconnect`)

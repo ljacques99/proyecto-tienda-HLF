@@ -48,8 +48,8 @@ kubectl hlf chaincode install --path=./chaincode.tgz \
 ## Aprobar chaincode
 ```bash
 export CHAINCODE_NAME=tienda-dev
-export SEQUENCE=2 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
-export VERSION="1.1" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
+export SEQUENCE=1 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
+export VERSION="1.0" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
 kubectl hlf chaincode approveformyorg --config=${CP_FILE} --user=admin --peer=org2-peer0.tienda \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name="${CHAINCODE_NAME}" \

@@ -1,6 +1,5 @@
 import FabricCAServices from "fabric-ca-client";
 import { User } from "fabric-common";
-import { newGrpcConnection } from '../utils';
 import * as fs from 'fs';
 import * as yaml from "yaml";
 import { config } from '../config';
@@ -10,12 +9,13 @@ class HyperledgerService {
     private static fabricCAServices: FabricCAServices;
     private static identityService: any;
     private static registrar: User;
+    private static networkConfig: any;
 
     static async init() {
-        const networkConfig = yaml.parse(await fs.promises.readFile(config.networkConfigPath, 'utf8'));
+        this.networkConfig = yaml.parse(await fs.promises.readFile(config.networkConfigPath, 'utf8'));
 
         // Configuración de los peers
-        const orgPeerNames = _.get(networkConfig, `organizations.${config.mspID}.peers`);
+        const orgPeerNames = _.get(this.networkConfig, `organizations.${config.mspID}.peers`);
         if (!orgPeerNames) {
             throw new Error(`Organization ${config.mspID} doesn't have any peers`);
         }
@@ -24,7 +24,7 @@ class HyperledgerService {
         let peerCACert: string = "";
 
         for (const peerName of orgPeerNames) {
-            const peer = networkConfig.peers[peerName];
+            const peer = this.networkConfig.peers[peerName];
             peerUrl = _.get(peer, 'url').replace("grpcs://", "");
             peerCACert = _.get(peer, 'tlsCACerts.pem');
             break; // Salir después del primer peer
@@ -35,7 +35,7 @@ class HyperledgerService {
         }
 
         // Configuración de la Autoridad de Certificación (CA)
-        const ca = networkConfig.certificateAuthorities[config.caName];
+        const ca = this.networkConfig.certificateAuthorities[config.caName];
         if (!ca) {
             throw new Error(`Certificate authority ${config.caName} not found in network configuration`);
         }
@@ -67,6 +67,15 @@ class HyperledgerService {
         );
     }
 
+    static getPeerDetails() {
+        const peerName = Object.keys(this.networkConfig.peers)[0]; // Asume el primer peer
+        const peer = this.networkConfig.peers[peerName];
+        return {
+            peerEndpoint: _.get(peer, 'url').replace('grpcs://', ''),
+            tlsRootCert: Buffer.from(_.get(peer, 'tlsCACerts.pem')),
+        };
+    }
+
     static getFabricCAServices() {
         return this.fabricCAServices;
     }
@@ -77,6 +86,18 @@ class HyperledgerService {
 
     static getRegistrar() {
         return this.registrar;
+    }
+
+    static getConnectionProfile() {
+        return this.networkConfig;
+    }
+
+    static getChannelName() {
+        return config.channelName
+    }
+
+    static getChaincodeName() {
+        return config.chaincodeName
     }
 
     // Hyperledger Fabric

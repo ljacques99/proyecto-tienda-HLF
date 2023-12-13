@@ -25,7 +25,7 @@ class TransactionService {
                 throw new Error('Contract not found');
             }
 
-            const responseBuffer = await contract.evaluateTransaction(fcn, ...args);
+            const responseBuffer = await contract.evaluateTransaction(fcn, ...args || []);
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {
@@ -42,7 +42,7 @@ class TransactionService {
                 throw new Error('Contract not found');
             }
 
-            const responseBuffer = await contract.submitTransaction(fcn, ...args);
+            const responseBuffer = await contract.submitTransaction(fcn, ...args || []);
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {

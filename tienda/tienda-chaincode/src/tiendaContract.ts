@@ -137,7 +137,8 @@ async addProduct (
   ctx: Context,
   id: string,
   name: string,
-  price: string // en centimos
+  price: string, // en centimos
+  imageURL: string
 ) {
   if (!ALLOWED_MSPS_MERCHANT.includes(ctx.clientIdentity.getMSPID())) {
     throw new Error("No tienes permiso para actualizar productos");
@@ -159,7 +160,8 @@ async addProduct (
     id,
     merchantId,
     name,
-    priceInt
+    priceInt,
+    imageURL
   };
   await ctx.stub.putState(productKey, Buffer.from(JSON.stringify(product)));
   log.info("Product creado", product);

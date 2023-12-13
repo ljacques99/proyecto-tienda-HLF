@@ -184,22 +184,22 @@ async function main() {
                 return
             }
             //const user = decoded.username
-            //const user = req.headers["x-user"] as string
-            // console.log(users, user)
-            // if (user && users[user]) {
-            //     const connectOptions = await newConnectOptions(
-            //         grpcConn,
-            //         config.mspID,
-            //         Buffer.from(users[user].certificate),
-            //         users[user].key.toBytes()
-            //     )
-            //     const gateway = connect(connectOptions);
-            //     const network = gateway.getNetwork(config.channelName);
-            //     const contract = network.getContract(config.chaincodeName);
-            //     (req as any).contract = contract
-            // } else {
-            //     throw new Error(`El usuario ${user} no existe`)
-            // } 
+            const user = req.headers["x-user"] as string
+            console.log(users, user)
+            if (user && users[user]) {
+                const connectOptions = await newConnectOptions(
+                    grpcConn,
+                    config.mspID,
+                    Buffer.from(users[user].certificate),
+                    users[user].key.toBytes()
+                )
+                const gateway = connect(connectOptions);
+                const network = gateway.getNetwork(config.channelName);
+                const contract = network.getContract(config.chaincodeName);
+                (req as any).contract = contract
+            } else {
+                throw new Error(`El usuario ${user} no existe`)
+            } 
             next()
         } catch (e) {
             log.error(e)

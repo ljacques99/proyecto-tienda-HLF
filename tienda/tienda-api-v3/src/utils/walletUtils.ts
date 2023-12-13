@@ -11,8 +11,32 @@ export async function initializeCouchDBWallet(): Promise<Wallet> {
     return await Wallets.newCouchDBWallet(couchDBConfig, dbName);
 }
 
+export interface UserIdentity {
+    credentials: {
+        certificate: string;
+        privateKey: string;
+    };
+    mspId: string;
+    type: string;
+}
+
+// export async function getUserWallet(wallet: Wallet, username: string): Promise<X509Identity | undefined> {
+//     // Intenta obtener la identidad del usuario de la cartera
+//     const identity = await wallet.get(username) as X509Identity;
+//     return identity;
+// }
+
 export async function getUserWallet(wallet: Wallet, username: string): Promise<X509Identity | undefined> {
-    // Intenta obtener la identidad del usuario de la cartera
     const identity = await wallet.get(username) as X509Identity;
-    return identity;
+    if (identity) {
+        return {
+            credentials: {
+                certificate: identity.credentials.certificate,
+                privateKey: identity.credentials.privateKey,
+            },
+            mspId: identity.mspId,
+            type: identity.type,
+        };
+    }
+    return undefined;
 }

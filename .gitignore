@@ -9,4 +9,5 @@ tienda/tienda-chaincode/connection.json
 tienda/tienda-chaincode/metadata.json
 tienda/tienda-api/node_modules
 tienda/tienda-api2/node_modules
+tienda/tienda-api-v3/node_modules
 tienda/tienda-api2/WALLETS
