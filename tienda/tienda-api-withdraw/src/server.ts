@@ -23,8 +23,6 @@ const log = new Logger({ name: "tienda-api" })
 const tiendaContractName= "TiendaContract"
 const tokenContractName="TokenERC20Contract"
 
-const withdrawFee = 0.01 // part of the withdrawal taken as fee (between 0 & 1)
-
 const providerURL="https://rpc-mumbai.maticvigil.com/" //address of the connection to the network where solidity smart contract is deployed
 const chainId = 80001 // chain ID of network of smart contract
 
@@ -117,10 +115,6 @@ async function main() {
         next();
     });
 
-    if(withdrawFee<0 || withdrawFee>1) {
-        throw new Error ("Withdrawal fee must be between 0 and 1")
-    }
-
     const contractAddress =Buffer.from(await fs.readFile(contractFilePath)).toString()
     const ABI = JSON.parse(await fs.readFile(ABIFile, 'utf8'))
 
@@ -137,9 +131,8 @@ async function main() {
 
             //gat amount to pay from chaincode
             const amountBuffer = await contract.evaluateTransaction("getBurnAmount", ...(req.body.args || []));
-            const amountTotal = Number(Buffer.from(amountBuffer).toString());
-            const amount = Math.trunc(amountTotal*(1-withdrawFee))
-            const fee = amountTotal - amount
+            const amount = Number(Buffer.from(amountBuffer).toString());
+
 
             console.log("amount to withdraw", amount)
 
@@ -171,29 +164,6 @@ async function main() {
 
             const responseBuffer = await contract.submitTransaction("registerWithdrawn", ...(req.body.args || []));
             const responseString = Buffer.from(responseBuffer).toString();
-
-            // pay fee
-
-            const feeUnsigned = await contractETH.populateTransaction.addFees(fee)
-            feeUnsigned.gasLimit = await contractETH.estimateGas.addFees(fee)
-            feeUnsigned.chainId = chainId
-            feeUnsigned.gasPrice = provider.getGasPrice() // put a fixed amount
-            feeUnsigned.nonce = await provider.getTransactionCount(owner.ownerAddress)
-          
-
-            const feeSigned = await signer.signTransaction(feeUnsigned)
-            const feeTx = await provider.sendTransaction(feeSigned)
-
-            console.log("transaction sent for fees", feeTx)
-            
-            const feeReceipt = await feeTx.wait()
-
-            console.log("fee receipt", feeReceipt)
-
-            if (feeReceipt.status === 0) {
-                throw new Error("fee transaction failed")
-                return
-            }
 
             res.send(responseString);
         } catch (e) {

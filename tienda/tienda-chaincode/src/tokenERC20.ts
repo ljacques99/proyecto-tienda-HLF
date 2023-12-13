@@ -27,7 +27,8 @@ const ethers = require('ethers')
 const contractAddress = fs.readFileSync("../tienda-sol/contract-address.txt").toString()
 const providerURL="https://rpc-mumbai.maticvigil.com/"
 
-const conversionRate = 1 // number of tokens per ethers
+const conversionRate = 1000 // number of tokens per ethers
+const conversionRateCent = conversionRate*100
 
 
 const ABI = JSON.parse(fs.readFileSync("../tienda-sol/contract.abi").toString())
@@ -384,7 +385,7 @@ class TokenERC20Contract extends Contract {
         // !!!!! ADD a test of address and user
         let amountInt 
         try {
-            amountInt = await contract.getTx(address, nonce).then(res => parseInt(res,10) * conversionRate)
+            amountInt = await contract.getTx(address, nonce).then(res => Math.trunc(Number(ethers.utils.formatEther(res))*conversionRateCent))
             //console.log('amount in big', amount)
         } catch (e) {
             throw new Error('Unable to find matching deposit')
@@ -559,7 +560,10 @@ class TokenERC20Contract extends Contract {
             throw new Error ("Already withdrawn")
         }
 
-        const amount = burnStateJson.amountInt/conversionRate
+        const amountEther = burnStateJson.amountInt/conversionRateCent
+        const amountEtherStr= amountEther.toFixed(18) //limit to 18 decimals the value in ethers
+
+        const amount = parseInt(ethers.utils.parseUnits(amountEtherStr ,'ether'),10)
         
         return amount
                 
