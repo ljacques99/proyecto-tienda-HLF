@@ -130,13 +130,17 @@ async function main() {
         try { // args = user and nonce
 
             //gat amount to pay from chaincode
-            const amountBuffer = await contract.evaluateTransaction("getBurnAmount", ...(req.body.args || []));
-            const amount = Number(Buffer.from(amountBuffer).toString());
+            const respuestaBuffer = await contract.evaluateTransaction("getBurnAmount", ...(req.body.args || []));
+            const respuesta = JSON.parse(Buffer.from(respuestaBuffer).toString())
+            console.log("respuesta", respuesta)
+            const amount = Number(respuesta.amount)
 
 
             console.log("amount to withdraw", amount)
 
-            const to = "0x9F7f7E43BCc5E55981148c8A75c26A84F0Be118A" // put address of the user in args
+            const to = respuesta.address
+
+            console.log("to", to)
 
             // send money to user
             const txUnsigned = await contractETH.populateTransaction.withdraw(amount, to)
