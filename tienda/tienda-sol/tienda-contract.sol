@@ -44,7 +44,7 @@ contract tiendaBridge {
 
 
     function withdraw(uint amount, address to) external onlyOwner noReentry{
-        require(totalBalance-fees >= amount, "Balance insuficiente");
+        require((totalBalance-fees) >= amount, "Balance insuficiente");
         require(amount>0, "importe debe ser positivo");
         require(amount<1000000000000000000000000000, "importe debe ser menos de 1.000.000.000 ethers");
         uint256 amountW = (amount *(10000-commission))/10000;

@@ -14,6 +14,7 @@ const allowancePrefix = 'allowance';
 const depositPrefix= 'deposit';
 const burnPrefix= "burn";
 const lastNoncePrefix="lastNonce";
+const addressPrefix = "address";
 
 // Define key names for options
 const nameKey = 'name';
@@ -378,6 +379,18 @@ class TokenERC20Contract extends Contract {
             throw new Error ('Transaction can only be credited once')
         }
 
+        const addressKey = ctx.stub.createCompositeKey(addressPrefix, [minter]);
+
+        const addressUserBuffer = await ctx.stub.getState(addressKey);
+        if(!addressUserBuffer || addressUserBuffer.length === 0) {
+            throw new Error ("No direccion grabada para este usuario")
+        }
+        const addressUser = Buffer.from(addressUserBuffer).toString()
+
+        if(addressUser != address) {
+            throw new Error ("Solo se puede creditar desde su direccion registrada")
+        }
+
         const provider = new ethers.providers.JsonRpcProvider(providerURL)
 
         const contract = new ethers.Contract(contractAddress, ABI, provider)
@@ -389,6 +402,10 @@ class TokenERC20Contract extends Contract {
             //console.log('amount in big', amount)
         } catch (e) {
             throw new Error('Unable to find matching deposit')
+        }
+
+        if (amountInt==0) {
+            throw new Error("El importe esmenos que 1 centimo")
         }
         
         //const amountInt = parseInt(amount, 10)
@@ -429,6 +446,28 @@ class TokenERC20Contract extends Contract {
 
         console.log(`minter account ${minter} balance updated from ${currentBalance} to ${updatedBalance}`);
         return true;
+    }
+
+    async addAddress(ctx: Context, address: string) {
+
+        if(!ethers.utils.isAddress(address)){
+            throw new Error ("El formato del address no esta bien")
+        }
+
+        const user = ctx.clientIdentity.getID()
+
+        const addressKey = ctx.stub.createCompositeKey(addressPrefix, [user]);
+        await ctx.stub.putState(addressKey, Buffer.from(address));
+        return true
+    }
+
+    async getAddress(ctx: Context) {
+        const user = ctx.clientIdentity.getID()
+        const addressKey = ctx.stub.createCompositeKey(addressPrefix, [user]);
+
+        const address = await ctx.stub.getState(addressKey);
+
+        return address.toString()
     }
 
     /**
@@ -487,8 +526,18 @@ class TokenERC20Contract extends Contract {
 
         const nonce = lastNonceInt+1
 
+        const addressKey = ctx.stub.createCompositeKey(addressPrefix, [minter]);
+
+        const addressBuffer = await ctx.stub.getState(addressKey);
+        if(!addressBuffer || addressBuffer.length===0) {
+            throw new Error ("No direccion grabada para este usuario")
+        }
+        const address = Buffer.from(addressBuffer).toString()
+
+
         const burnState = {
             amountInt,
+            address,
             withdrawn: false
         }
 
@@ -560,12 +609,19 @@ class TokenERC20Contract extends Contract {
             throw new Error ("Already withdrawn")
         }
 
+        const address = burnStateJson.address
+
         const amountEther = burnStateJson.amountInt/conversionRateCent
         const amountEtherStr= amountEther.toFixed(18) //limit to 18 decimals the value in ethers
 
         const amount = parseInt(ethers.utils.parseUnits(amountEtherStr ,'ether'),10)
+
+        const respuesta = {
+            amount,
+            address
+        }
         
-        return amount
+        return respuesta
                 
     }
 

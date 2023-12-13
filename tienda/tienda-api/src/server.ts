@@ -171,10 +171,8 @@ async function main() {
 
     app.use( /^(\/.+|(?!\/signup|\/login|\/disconnect).*)$/, async (req, res, next) => {
         try {
-            console.log("cookie",req.cookies["cookiedehlftienda"])
             const token1= req.cookies["cookiedehlftienda"]
             const token2 = req.headers["authorization"]
-            console.log('token', token2)
             if(token1 && token2 && token1!=token2) {
                 res.status(401).send("Los dos tokens son diferentes")
                 return
@@ -183,7 +181,6 @@ async function main() {
 
             if(!token) return res.status(401).json('Unauthorize user')
             const decoded = jwt.verify(token,'este-es-el-seed');
-            console.log("decoded", decoded)
             if(decoded.mspID!=config.mspID) {
                 res.status(401).send("EL usuario no partenece a esta organizacion")
                 return
@@ -200,7 +197,7 @@ async function main() {
                 )
                 const gateway = connect(connectOptions);
                 const network = gateway.getNetwork(config.channelName);
-                const contract = network.getContract(config.chaincodeName);
+                //const contract = network.getContract(config.chaincodeName);
                 (req as any).network = network
             } else {
                 throw new Error(`El usuario ${user} no existe`)
