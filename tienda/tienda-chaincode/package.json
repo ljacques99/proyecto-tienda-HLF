@@ -5,6 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/uuid": "^9.0.0",
+    "ethers": "^5.7.2",
     "fabric-contract-api": "^2.0.0",
     "fabric-shim": "^2.0.0",
     "pg": "^8.11.2",

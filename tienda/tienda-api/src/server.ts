@@ -13,9 +13,14 @@ import { checkConfig, config } from './config';
 import FabricCAServices = require("fabric-ca-client")
 import express = require("express")
 import { newGrpcConnection, newConnectOptions } from './utils';
+var cookieParser = require('cookie-parser')
+const jwt = require('jsonwebtoken')
 const cors = require("cors")
 
 const log = new Logger({ name: "tienda-api" })
+
+const tiendaContractName= "TiendaContract"
+const tokenContractName="TokenERC20Contract"
 
 
 async function main() {
@@ -70,15 +75,17 @@ async function main() {
         registrarUserResponse.certificate,
         registrarUserResponse.key.toBytes()
     );
+    
+    const grpcConn = await newGrpcConnection(peerUrl, Buffer.from(peerCACert))
+    
 
-
-    const adminUser = _.get(networkConfig, `organizations.${config.mspID}.users.${config.hlfUser}`)
+    /* const adminUser = _.get(networkConfig, `organizations.${config.mspID}.users.${config.hlfUser}`)
     const userCertificate = _.get(adminUser, "cert.pem")
     const userKey = _.get(adminUser, "key.pem")
     if (!userCertificate || !userKey) {
         throw new Error(`User ${config.hlfUser} not found in network configuration`);
     }
-    const grpcConn = await newGrpcConnection(peerUrl, Buffer.from(peerCACert))
+    
     const connectOptions = await newConnectOptions(
         grpcConn,
         config.mspID,
@@ -87,10 +94,11 @@ async function main() {
     )
     const gateway = connect(connectOptions);
     const network = gateway.getNetwork(config.channelName);
-    const contract = network.getContract(config.chaincodeName);
+    const contract = network.getContract(config.chaincodeName); */
     const app = express();
     app.use(express.json());
     app.use(cors());
+    app.use(cookieParser())
     app.use((req, res, next) => {
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -132,17 +140,56 @@ async function main() {
             res.send("Username not found")
             return
         }
-        const r = await fabricCAServices.enroll({
-            enrollmentID: username,
-            enrollmentSecret: password,
-        })
-        users[username] = r
-        res.send("OK")
-    })
-    app.use(async (req, res, next) => {
-        (req as any).contract = contract
         try {
-            const user = req.headers["x-user"] as string
+            const r = await fabricCAServices.enroll({
+                enrollmentID: username,
+                enrollmentSecret: password,
+            })
+            users[username] = r
+            let token = jwt.sign({
+                username,
+                mspID: config.mspID
+            }, 'este-es-el-seed', {expiresIn: '48h'})
+            res.cookie("cookieDeHLFtienda", token, {maxAge:900000}).send(token)
+        } catch(e) {
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
+        }
+    })
+
+    app.get("/disconnect", async (req, res) => {
+        const user = req.headers["x-user"] as string
+        console.log(users, user)
+        if (user && users[user]) {
+            users[user]=null
+            res.send("disconnected")
+        } else {
+            res.status(400).send(`No user ${user} to disconnect`)
+        }
+        
+    })
+
+    app.use( /^(\/.+|(?!\/signup|\/login|\/disconnect).*)$/, async (req, res, next) => {
+        try {
+            console.log("cookie",req.cookies["cookiedehlftienda"])
+            const token1= req.cookies["cookiedehlftienda"]
+            const token2 = req.headers["authorization"]
+            console.log('token', token2)
+            if(token1 && token2 && token1!=token2) {
+                res.status(401).send("Los dos tokens son diferentes")
+                return
+            }
+            const token = token1 || token2
+
+            if(!token) return res.status(401).json('Unauthorize user')
+            const decoded = jwt.verify(token,'este-es-el-seed');
+            console.log("decoded", decoded)
+            if(decoded.mspID!=config.mspID) {
+                res.status(401).send("EL usuario no partenece a esta organizacion")
+                return
+            }
+            const user= decoded.username
+            //const user = req.headers["x-user"] as string
             console.log(users, user)
             if (user && users[user]) {
                 const connectOptions = await newConnectOptions(
@@ -154,17 +201,21 @@ async function main() {
                 const gateway = connect(connectOptions);
                 const network = gateway.getNetwork(config.channelName);
                 const contract = network.getContract(config.chaincodeName);
-                (req as any).contract = contract
-            }
+                (req as any).network = network
+            } else {
+                throw new Error(`El usuario ${user} no existe`)
+            } 
             next()
         } catch (e) {
             log.error(e)
-            next(e)
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
         }
     })
     app.get("/ping", async (req, res) => {
         try {
-            const responseBuffer = await (req as any).contract.evaluateTransaction("Ping");
+            const contract = (req as any).network.getContract(config.chaincodeName, tiendaContractName);
+            const responseBuffer = await contract.evaluateTransaction("Ping");
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {
@@ -174,7 +225,8 @@ async function main() {
     })
     app.get("/id", async (req, res) => {
         try {
-            const responseBuffer = await (req as any).contract.evaluateTransaction("getMyIdentity");
+            const contract = (req as any).network.getContract(config.chaincodeName, tiendaContractName);
+            const responseBuffer = await contract.evaluateTransaction("getMyIdentity");
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {
@@ -187,7 +239,8 @@ async function main() {
     app.post("/consult", async (req, res) => {
         try {
             const fcn = req.body.fcn
-            const responseBuffer = await (req as any).contract.evaluateTransaction(fcn, ...(req.body.args || []));
+            const contract = (req as any).network.getContract(config.chaincodeName, tiendaContractName);
+            const responseBuffer = await contract.evaluateTransaction(fcn, ...(req.body.args || []));
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {
@@ -199,7 +252,8 @@ async function main() {
     app.post("/submit", async (req, res) => {
         try {
             const fcn = req.body.fcn
-            const responseBuffer = await (req as any).contract.submitTransaction(fcn, ...(req.body.args || []));
+            const contract = (req as any).network.getContract(config.chaincodeName, tiendaContractName);
+            const responseBuffer = await contract.submitTransaction(fcn, ...(req.body.args || []));
             const responseString = Buffer.from(responseBuffer).toString();
             res.send(responseString);
         } catch (e) {
@@ -207,6 +261,34 @@ async function main() {
             res.send(e.details && e.details.length ? e.details : e.message);
         }
     })
+
+    app.post("/token/consult", async (req, res) => {
+        try {
+            const fcn = req.body.fcn
+            const contract = (req as any).network.getContract(config.chaincodeName, tokenContractName);
+            const responseBuffer = await contract.evaluateTransaction(fcn, ...(req.body.args || []));
+            const responseString = Buffer.from(responseBuffer).toString();
+            res.send(responseString);
+        } catch (e) {
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
+        }
+    })
+
+    app.post("/token/submit", async (req, res) => {
+        try {
+            const fcn = req.body.fcn
+            const contract = (req as any).network.getContract(config.chaincodeName, tokenContractName);
+            const responseBuffer = await contract.submitTransaction(fcn, ...(req.body.args || []));
+            const responseString = Buffer.from(responseBuffer).toString();
+            res.send(responseString);
+        } catch (e) {
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
+        }
+    })
+
+    
 
     const server = app.listen(
         {

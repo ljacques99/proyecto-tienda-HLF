@@ -8,3 +8,6 @@ tienda/tienda-chaincode/code.tar.gz
 tienda/tienda-chaincode/connection.json
 tienda/tienda-chaincode/metadata.json
 tienda/tienda-api/node_modules
+tienda/tienda-api-withdraw/node_modules
+tienda/tienda-sol/contract-details.json
+tienda/tienda-sol/privatekey.txt

@@ -48,8 +48,8 @@ kubectl hlf chaincode install --path=./chaincode.tgz \
 ## Aprobar chaincode
 ```bash
 export CHAINCODE_NAME=tienda-dev
-export SEQUENCE=2 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
-export VERSION="1.1" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
+export SEQUENCE=3 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
+export VERSION="1.2" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
 kubectl hlf chaincode approveformyorg --config=${CP_FILE} --user=admin --peer=org2-peer0.tienda \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name="${CHAINCODE_NAME}" \
@@ -88,9 +88,21 @@ npm run chaincode:start
 ```bash
 export CP_FILE=$PWD/../../tienda.yaml
 kubectl hlf chaincode query --config=$CP_FILE \
-    --user=userB-org2 --peer=org2-peer0.tienda \
+    --user=user-org2 --peer=org2-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=Ping
+```
+
+## Inicializar ERC20
+```bash
+export CP_FILE=$PWD/../../tienda.yaml
+kubectl hlf chaincode query --config=$CP_FILE \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=Initialize \
+     -a 'HLFethers' \
+     -a 'ETH' \
+     -a 'cent'
 ```
 
 ### Inicializar chaincode  
@@ -108,7 +120,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org2 --peer=org2-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=addCustomer \
-     -a 'customerTest' 
+     -a 'customerTest2' 
 ```
 
 ### consulter customer
@@ -143,7 +155,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org1 --peer=org1-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=getMerchant \
-     -a 'merchant2Id' 
+     -a 'merchantTest' 
 ```
 
 ### get all merchants
@@ -162,7 +174,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --fcn=addProduct \
      -a 'prod2' \
      -a 'producto test 2' \
-     -a '25'
+     -a '23'
 ```
 
 
@@ -181,7 +193,7 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=addInvoice \
      -a 'x509::/OU=client/CN=client-org1::/C=ES/L=Alicante/=Alicante/O=Kung Fu Software/OU=Tech/CN=ca' \
-     -a '[{"productId": "prod1", "quantity": "2"},{"productId": "prod2", "quantity": "4"}]'
+     -a '[{"productId": "prod1", "quantity": "3"},{"productId": "prod2", "quantity": "4"}]'
 ```
 
 ### get Invoice
@@ -226,6 +238,15 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --user=user-org1 --peer=org1-peer0.tienda \
     --chaincode=tienda-dev --channel=tienda \
     --fcn=getMyInvoiceMerchant
+```
+
+### Mint
+```bash
+kubectl hlf chaincode invoke --config=$CP_FILE \
+    --user=user-org1 --peer=org1-peer0.tienda \
+    --chaincode=tienda-dev --channel=tienda \
+    --fcn=Mint \
+     -a '5'
 ```
 
 ### limpiar chaincode

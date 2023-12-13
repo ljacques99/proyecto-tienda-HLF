@@ -414,8 +414,8 @@ Crear el canal
 export PEER_ORG1_SIGN_CERT=$(kubectl get fabriccas org1-ca --namespace=tienda -o=jsonpath='{.status.ca_cert}')
 export PEER_ORG1_TLS_CERT=$(kubectl get fabriccas org1-ca --namespace=tienda -o=jsonpath='{.status.tlsca_cert}')
 
-export PEER_SONY_SIGN_CERT=$(kubectl get fabriccas org2-ca --namespace=tienda -o=jsonpath='{.status.ca_cert}')
-export PEER_SONY_TLS_CERT=$(kubectl get fabriccas org2-ca --namespace=tienda -o=jsonpath='{.status.tlsca_cert}')
+export PEER_ORG2_SIGN_CERT=$(kubectl get fabriccas org2-ca --namespace=tienda -o=jsonpath='{.status.ca_cert}')
+export PEER_ORG2_TLS_CERT=$(kubectl get fabriccas org2-ca --namespace=tienda -o=jsonpath='{.status.tlsca_cert}')
 
 export IDENT_8=$(printf "%8s" "")
 export ORDERER_TLS_CERT=$(kubectl get fabriccas ord-ca --namespace=tienda -o=jsonpath='{.status.tlsca_cert}' | sed -e "s/^/${IDENT_8}/" )
@@ -637,7 +637,7 @@ kubectl hlf ca register --name=org2-ca --namespace=tienda --user=client-org2 --s
  --enroll-id enroll --enroll-secret=enrollpw --mspid Org2MSP  
 
 kubectl hlf ca enroll --name=org2-ca --namespace=tienda --user=client-org2 --secret=clientpw --mspid Org2MSP \
-        --ca-name ca  --output user-org2.yaml
+        --ca-name ca  --output userAorg2.yaml
 
 
 kubectl hlf utils adduser --userPath=user-org1.yaml --config=tienda.yaml --username=user-org1 --mspid=Org1MSP

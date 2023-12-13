@@ -23,6 +23,7 @@ const ALLOWED_MSPS_MERCHANT = ["Org1MSP"];
 const ALLOWED_MSPS_CLIENT = ["Org2MSP"];
 
 class TiendaContract extends Contract {
+
   async getMyIdentity(ctx: Context) {
 
     return {
@@ -30,6 +31,7 @@ class TiendaContract extends Contract {
       mspId: ctx.clientIdentity.getMSPID(),
     };
   }
+  
   async Ping(ctx: Context) {
     log.info("ping");
     return "pong";
@@ -137,7 +139,8 @@ async addProduct (
   ctx: Context,
   id: string,
   name: string,
-  price: string // en centimos
+  price: string, // en centimos
+  imageURL: string
 ) {
   if (!ALLOWED_MSPS_MERCHANT.includes(ctx.clientIdentity.getMSPID())) {
     throw new Error("No tienes permiso para actualizar productos");
@@ -159,7 +162,8 @@ async addProduct (
     id,
     merchantId,
     name,
-    priceInt
+    priceInt,
+    imageURL
   };
   await ctx.stub.putState(productKey, Buffer.from(JSON.stringify(product)));
   log.info("Product creado", product);
