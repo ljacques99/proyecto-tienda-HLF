@@ -103,6 +103,12 @@ class AuthService {
             
             // addUser(user.id, { isConnected: true })
             const token = createToken({ username: user.id, mspID: config.mspID, walletAddress: walletAddress });
+            console.log(`
+        An identity has logged in!
+        - Identity: ${user.id} 
+        - Address: ${walletAddress}
+        - mspID: ${config.mspID}
+            `)
             return { token };
         } catch (e) {
             throw new Error(e.message);

@@ -65,7 +65,6 @@ export async function connectGateway(username: string) {
         // Obtener el contrato del canal especificado
         const network = gateway.getNetwork(HyperledgerService.getChannelName());
         const contract = network.getContract(HyperledgerService.getChaincodeName());
-
         return contract;
     } catch (error) {
         console.error('Error connecting to Gateway:', error);

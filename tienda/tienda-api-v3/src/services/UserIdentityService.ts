@@ -55,6 +55,13 @@ class UserIdentityService {
             mspId: config.mspID,
             type: 'X.509',
         };
+
+        console.log(`
+        New identity has been created in the organization!
+        - Identity: ${username} 
+        - Address: ${walletAddress}
+        - mspID: ${config.mspID}
+        `)
         await this.wallet.put(username, newIdentity);
     }
 

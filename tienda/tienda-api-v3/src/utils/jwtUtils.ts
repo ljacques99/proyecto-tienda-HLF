@@ -20,6 +20,6 @@ export const verifyToken = (token: any) : JwtPayload | null => {
     try {
         return jwt.verify(token, JWT_SECRET) as any
     } catch (error) {
-        throw new Error('Invalid token');
+        return null
     }
 };

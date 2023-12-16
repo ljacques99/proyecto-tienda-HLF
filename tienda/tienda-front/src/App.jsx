@@ -1,42 +1,117 @@
-import { useState } from 'react'
-import {Route, Routes, BrowserRouter} from 'react-router-dom'
-import {QueryClient, QueryClientProvider} from 'react-query'
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import Home from './routes/Home';
+import ProtectedRoute from './components/ProtectedRoute'
 
-//import viteLogo from '/vite.svg'
+import SignUp from "./routes/SignUp";
+import Login from './routes/Login';
 
-import {Home} from './Components/Home'
-import { Welcome } from './Components/Welcome'
-import { Customers } from './Components/Customers'
-import { CustomerDetail } from './Components/CustomerDetail'
-import { Test } from './Components/Test'
-import { Login } from './Components/login'
-import { Orders } from './Components/Orders'
-import { OrderDetail } from './Components/OrderDetail'
+import Products from "./routes/Clients/Products";
+import ClientInvoices from "./routes/Clients/Invoices";
 
-const queryClient = new QueryClient()  
+import Basket from "./routes/Clients/Basket";
+import { BasketProvider } from "./context/BasketContext";
 
-function App() {
-  const [count, setCount] = useState(0)
+import Store from "./routes/Store"
+import StoreLayout from "./components/StoreLayout";
 
+import Business from "./routes/Business"
+import Dashboard from "./routes/Merchants/Dashboard";
+import BusinessLayout from "./components/BusinessLayout";
+import BusinessProducts from "./routes/Merchants/Products"
+import BusinessInvoices from "./routes/Merchants/Invoices"
+
+// Crear un enrutador
+const router = createBrowserRouter([
+  {
+    path: '*',
+    element: <ProtectedRoute redirectIfAuthenticated={true} ><Home /></ProtectedRoute>,
+  },
+  {
+    path: '/',
+    element: <ProtectedRoute redirectIfAuthenticated={true} ><Home /></ProtectedRoute>,
+  },
+  {
+    path: '/business',
+    children: [
+      {
+        path: '',
+        element: <ProtectedRoute redirectIfAuthenticated={true}><Business /></ProtectedRoute>
+      },
+      {
+        path: 'login',
+        element: <ProtectedRoute redirectIfAuthenticated={true}><Login userType="business"/></ProtectedRoute>,
+      },
+      {
+        path: 'signup',
+        element: <ProtectedRoute redirectIfAuthenticated={true}><SignUp userType="business"/></ProtectedRoute>,
+      },
+      {
+        path: 'dashboard',
+        element: <BusinessLayout />,
+        children: [
+          {
+            path: '',
+            element: <ProtectedRoute userTypeRequired="business"><Dashboard /></ProtectedRoute>
+          },
+          {
+            path: 'products',
+            element: <ProtectedRoute userTypeRequired="business"><BusinessProducts /></ProtectedRoute>
+          },
+          {
+            path: 'invoices',
+            element: <ProtectedRoute userTypeRequired="business"><BusinessInvoices /></ProtectedRoute>
+          }
+        ]
+      }
+     
+    ]
+  },
+  {
+    path: '/store',
+    element: <StoreLayout />,
+    children: [
+      {
+        path: '',
+        element: <ProtectedRoute redirectIfAuthenticated={true}><Store /></ProtectedRoute>
+      },
+      {
+        path: 'login',
+        element: <ProtectedRoute redirectIfAuthenticated={true}><Login userType="client"/></ ProtectedRoute>
+      },
+      {
+        path: 'signup',
+        element: <ProtectedRoute redirectIfAuthenticated={true}><SignUp userType="client"/></ProtectedRoute>,
+      },
+      {
+        path: 'basket',
+        element: <ProtectedRoute userTypeRequired="client"><Basket /></ProtectedRoute>
+      },
+      {
+        path: 'products',
+        element: <ProtectedRoute userTypeRequired="client"><Products /></ProtectedRoute>
+      },
+      {
+        path: 'dashboard',
+        element: <ProtectedRoute userTypeRequired="client"><ClientInvoices /></ProtectedRoute>
+      }
+    ]
+  }
+]);
+
+const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element ={<Home/>}>
-            <Route path="*" element ={<Welcome/>}/>
-            <Route index element ={<Welcome/>}/>
-            <Route path="/customers" element ={<Customers/>}/>
-            <Route path="/orders/:customer_id" element ={<Orders/>}/>
-            <Route path="/orderdetail/:order_id" element ={<OrderDetail/>}/>
-          </Route>
-          <Route path="/customerDetail/:customer_id" element={<CustomerDetail/>}>
-          </Route>
-          <Route path="/ping" element={<Test/>}/>
-          <Route path="/login" element={<Login/>}/> 
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>  
-  )
-}
+    <>
+    <AuthProvider>
+      <BasketProvider>
+        <RouterProvider router={router} />
+      </BasketProvider>
+    </AuthProvider>
+    </>
+  );
+};
 
-export default App
+export default App;
