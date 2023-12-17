@@ -1,6 +1,8 @@
 # API
 
-Este API expone via HTTP las operaciones que se pueden realizar sobre el chaincode NFT.
+Este API expone via HTTP las operaciones que se pueden realizar sobre el chaincode.
+Hay un servidor por organizacion.
+verificar los parametros en .env.org1 y .env.org2
 
 ## Instalar librerias
 ```bash
@@ -29,15 +31,14 @@ npm run server:org2:dev
 ### Verificar conectividad con el smart contract
 
 ```bash
-http GET "http://localhost:3003/ping"
+
 ```
 
-Debe devolver `pong`
 
 ### Inicializar el smart contract
 
 ```bash
-http POST "http://localhost:3003/init?tokenName=Dolar&tokenSymbol=$"
+
 ```
 
 ### Registrar un usuario
@@ -46,6 +47,7 @@ http POST "http://localhost:3003/init?tokenName=Dolar&tokenSymbol=$"
 http POST "http://localhost:3003/signup" username="user1" password="user1pw"
 ```
 
+O usar un herramienta para hacer un post con un body:
 ```json
 {
         "username": "user1",
@@ -61,109 +63,15 @@ Esta operacion se tiene que hacer siempre que el programa se reinicie
 http POST "http://localhost:3003/login" username="user1" password="user1pw"
 ```
 
-### Crear un NFT
-
-```bash
-http POST "http://localhost:3003/submit" x-user:user1 fcn=Mint "args[]=9"  \
-        "args[]=https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png" "args[]=Nombre" "args[]=Descripcion"
+```json
+{
+        "username": "user1",
+        "password": "user1pw"
+}
 ```
 
-### Obtener un NFT
+Para otras funciones y rutas, solo son acesibles desde un navigador con metamask
 
-```bash
-http POST "http://localhost:3003/evaluate" x-user:user1 fcn=GetToken "args[]=9"
-```
-
-### crear account
-
-```bash
-http POST "http://localhost:3003/submit" x-user:user1 fcn=addMerchant "args[]=TestApi"
-```
-
-### Registrar otro usuario
-
-```bash
-http POST "http://localhost:3003/signup" username="user2" password="user2pw"
-```
-
-### Logearnos con otro usuario
-
-Esta operacion se tiene que hacer siempre que el programa se reinicie
-
-```bash
-http POST "http://localhost:3003/login" username="user2" password="user2pw"
-```
-
-## Mintear un NFT
-
-```bash
-http POST "http://localhost:3003/submit" x-user:user2 fcn=Mint "args[]=10"  \
-        "args[]=https://storage.googleapis.com/opensea-prod.appspot.com/puffs/3.png" "args[]=Nombre2" "args[]=Descripcion2"
-```
-
-## Obtener identidad del usuario 1
-
-```bash
-http GET "http://localhost:3003/id" x-user:user1
-```
-
-## Transferir token de usuario 2 a usuario 1
-
-```bash
-http POST "http://localhost:3003/submit" x-user:user1 fcn=TransferFrom \
-        "args[]=x509::/OU=client/CN=user1::/C=ES/L=Alicante/=Alicante/O=Kung Fu Software/OU=Tech/CN=ca" \
-        "args[]=x509::/OU=client/CN=user2::/C=ES/L=Alicante/=Alicante/O=Kung Fu Software/OU=Tech/CN=ca" \
-        "args[]=9"
-
-```
-
-## Comprobar owner del token transferido
-
-```bash
-http POST "http://localhost:3003/evaluate" x-user:user2 fcn=OwnerOf "args[]=9"
-```
-
-## Limpiar chaincode
-
-```bash
-http POST "http://localhost:3003/submit" x-user:user2 fcn=limpiarChaincode
-```
-
-
-### Registrar otro usuario
-
-```bash
-http POST "http://localhost:3004/signup" username="user2-org2" password="user2pw"
-```
-
-### Logearnos con otro usuario
-
-Esta operacion se tiene que hacer siempre que el programa se reinicie
-
-```bash
-http POST "http://localhost:3004/login" username="user2-org2" password="user2pw"
-```
-
-## Obtener identidad del usuario 1
-
-```bash
-http GET "http://localhost:3004/id" x-user:user2-org2
-```
-
-
-## Transferir token de usuario 2 (Org1) a usuario 2 (Org2)
-
-```bash
-http POST "http://localhost:3003/submit" x-user:user2 fcn=TransferFrom \
-        "args[]=x509::/OU=client/CN=user2::/C=ES/L=Alicante/=Alicante/O=Kung Fu Software/OU=Tech/CN=ca" \
-        "args[]=x509::/OU=client/CN=user2-org2::/C=ES/L=Alicante/=Alicante/O=Kung Fu Software/OU=Tech/CN=ca" \
-        "args[]=9"
-
-```
-
-## Comprobar owner del token transferido
-
-```bash
-http POST "http://localhost:3003/evaluate" x-user:user2 fcn=OwnerOf "args[]=9"
-```
+En el header viene en token de conexion firmado por metamask.
+en el body, generalemente la funcion a llamar "fcn": "xxx" y los argumentos en el mismo orden que la funcion del chaincode "args": ["xxx", "yyy"]
 

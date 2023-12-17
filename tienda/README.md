@@ -637,7 +637,7 @@ kubectl hlf ca register --name=org2-ca --namespace=tienda --user=client-org2 --s
  --enroll-id enroll --enroll-secret=enrollpw --mspid Org2MSP  
 
 kubectl hlf ca enroll --name=org2-ca --namespace=tienda --user=client-org2 --secret=clientpw --mspid Org2MSP \
-        --ca-name ca  --output userAorg2.yaml
+        --ca-name ca  --output user-org2.yaml
 
 
 kubectl hlf utils adduser --userPath=user-org1.yaml --config=tienda.yaml --username=user-org1 --mspid=Org1MSP

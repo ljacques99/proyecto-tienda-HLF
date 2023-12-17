@@ -176,6 +176,30 @@ async function main() {
         }
     })
 
+    app.post("/initialize", async (req, res) => {
+        try {
+            const responseBuffer = await contract.submitTransaction("Initialize", ...(req.body.args || []) );
+            const responseString = Buffer.from(responseBuffer).toString()
+            res.send(responseString)
+
+        } catch (e) {
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
+        }
+    })
+
+    app.get("/tokenname", async (req, res) => {
+        try {
+            const responseBuffer = await contract.evaluateTransaction("TokenName");
+            const responseString = Buffer.from(responseBuffer).toString()
+            res.send(responseString)
+
+        } catch (e) {
+            res.status(400)
+            res.send(e.details && e.details.length ? e.details : e.message);
+        }
+    })
+
     
 
     const server = app.listen(

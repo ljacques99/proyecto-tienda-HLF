@@ -54,8 +54,8 @@ kubectl hlf chaincode install --path=./chaincode.tgz \
 ## Aprobar chaincode
 ```bash
 export CHAINCODE_NAME=tienda-dev
-export SEQUENCE=3 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
-export VERSION="1.2" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
+export SEQUENCE=1 #intializar a 1 y incrementar de 1 cada vez que cambia el chaincode
+export VERSION="1.0" #intializar a 1.0 y incrementar cada vez que cambia el chaincode
 kubectl hlf chaincode approveformyorg --config=${CP_FILE} --user=admin --peer=org2-peer0.tienda \
     --package-id=$PACKAGE_ID \
     --version "$VERSION" --sequence "$SEQUENCE" --name="${CHAINCODE_NAME}" \
@@ -90,7 +90,7 @@ export CORE_PEER_TLS_ENABLED=false
 npm run chaincode:start
 ```
 
-### Ping chaincode
+### Ping chaincode  -- para prober chaincode esta corriendo
 ```bash
 export CP_FILE=$PWD/../../tienda.yaml
 kubectl hlf chaincode query --config=$CP_FILE \
@@ -99,19 +99,8 @@ kubectl hlf chaincode query --config=$CP_FILE \
     --fcn=Ping
 ```
 
-## Inicializar ERC20
-```bash
-export CP_FILE=$PWD/../../tienda.yaml
-kubectl hlf chaincode query --config=$CP_FILE \
-    --user=user-org1 --peer=org1-peer0.tienda \
-    --chaincode=tienda-dev --channel=tienda \
-    --fcn=Initialize \
-     -a 'HLFethers' \
-     -a 'ETH' \
-     -a 'cent'
-```
 
-### Inicializar chaincode  
+### Inicializar chaincode  -- para initializar la tienda la primera vez
 
 ```bash
 kubectl hlf chaincode invoke --config=$CP_FILE \
@@ -120,6 +109,8 @@ kubectl hlf chaincode invoke --config=$CP_FILE \
     --fcn=Init
 ```
 
+
+### para probar
 ### Créer customer
 ```bash
 kubectl hlf chaincode invoke --config=$CP_FILE \
