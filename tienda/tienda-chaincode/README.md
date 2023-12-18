@@ -1,10 +1,10 @@
 ## Chaincode para el proyecto Tienda
 
-Para usar el bridge, se necesita deployar el smart contract en mumbia MATIC antes del chaincode
+Para usar el bridge, se necesita deployar el smart contract en mumbai MATIC antes del chaincode
 
 si se usa otra red que mumbai MATIC (chainID 80001), se necesita cambiar el URL del provider en el fichero TokenERC20.ts
 
-Tambien se puede cambiar el conversion rate entre el Token y el ether en el fihcero TokenERC20.ts 
+Tambien se puede cambiar el conversion rate entre el Token y el ether en el fichero TokenERC20.ts 
 
 
 ## Instalación del chaincode en los peers
