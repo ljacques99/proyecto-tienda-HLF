@@ -18,6 +18,10 @@ module.exports = {
       url: process.env.MUMBAI_RPC,
       accounts: [`0x${privateKey}`]
     },
+    polygon: {
+      url: process.env.POLYGON_RPC,
+      accounts: [`0x${privateKey}`]
+    },
         
   },
 };

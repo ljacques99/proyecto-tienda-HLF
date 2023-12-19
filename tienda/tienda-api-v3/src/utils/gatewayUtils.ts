@@ -42,14 +42,19 @@ export async function newConnectOptions(
 
 
 // Función principal para conectar al Gateway y obtener un contrato
-export async function connectGateway(username: string, contractName: string) {
+export async function connectGateway(username: string, contractName: string, isAdmin: boolean = false) {
     try {
         // Obtener detalles del peer y CA desde HyperledgerService
         const { peerEndpoint, tlsRootCert } = HyperledgerService.getPeerDetails();
         const grpcConn = await newGrpcConnection(peerEndpoint, tlsRootCert);
 
-        // Obtener identidad y firmante del usuario
-        const userIdentity = await UserIdentityService.getUserIdentity(username);
+        let userIdentity;
+
+        if (isAdmin) {
+            userIdentity = await HyperledgerService.getAdminIdentity();
+        } else {
+            userIdentity = await UserIdentityService.getUserIdentity(username);
+        }
 
         if (!userIdentity) throw ('This user needs to reenroll')
         if (!contractName) throw ('The contract needs to be provided')
@@ -72,3 +77,34 @@ export async function connectGateway(username: string, contractName: string) {
         throw error;
     }
 }
+
+// export async function connectGateway(username: string, contractName: string) {
+//     try {
+//         // Obtener detalles del peer y CA desde HyperledgerService
+//         const { peerEndpoint, tlsRootCert } = HyperledgerService.getPeerDetails();
+//         const grpcConn = await newGrpcConnection(peerEndpoint, tlsRootCert);
+
+//         // Obtener identidad y firmante del usuario
+//         const userIdentity = await UserIdentityService.getUserIdentity(username);
+
+//         if (!userIdentity) throw ('This user needs to reenroll')
+//         if (!contractName) throw ('The contract needs to be provided')
+
+//         const connectOptions = await newConnectOptions(
+//             grpcConn,
+//             userIdentity.mspId,
+//             userIdentity.credentials.certificate,
+//             userIdentity.credentials.privateKey
+//         );
+//         // const gateway = new Gateway();
+//         const gateway = connect(connectOptions);
+
+//         // Obtener el contrato del canal especificado
+//         const network = gateway.getNetwork(HyperledgerService.getChannelName());
+//         const contract = network.getContract(HyperledgerService.getChaincodeName(), contractName);
+//         return contract;
+//     } catch (error) {
+//         console.error('Error connecting to Gateway:', error);
+//         throw error;
+//     }
+// }

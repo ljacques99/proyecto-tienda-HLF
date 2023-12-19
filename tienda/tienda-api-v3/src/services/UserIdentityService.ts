@@ -2,6 +2,7 @@ import HyperledgerService from './HyperledgerService';
 import { Wallet, X509Identity } from 'fabric-network';
 import { initializeCouchDBWallet, getUserWallet, UserIdentity } from '../utils/walletUtils';
 import { config } from '../config';
+import * as _ from "lodash";
 
 class UserIdentityService {
     private wallet: Wallet;

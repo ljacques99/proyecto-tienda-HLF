@@ -25,14 +25,14 @@ const totalSupplyKey = 'totalSupply';
 const fs = require('fs')
 const ethers = require('ethers')
 
-const contractAddress = fs.readFileSync("../tienda-sol/contract-address.txt").toString()
-const providerURL="https://rpc-mumbai.maticvigil.com/"
+const contractAddress = "0x3D4C55E604ac26bf3081d9797d3AD4655F8476b2" //fs.readFileSync("../tienda-sol-hardhat/smart-contracts").toString()
+const providerURL = "https://polygon-mainnet.g.alchemy.com/v2/jJpIVW9X0Ic72jgP73wsziBejAhvsH-o" //https://rpc-mumbai.maticvigil.com/"
 
 const conversionRate = 1000 // number of tokens per ethers
 const conversionRateCent = conversionRate*100
 
 
-const ABI = JSON.parse(fs.readFileSync("../tienda-sol/contract.abi").toString())
+const ABI = JSON.parse(fs.readFileSync("../tienda-sol-hardhat/bridge.abi").toString())
 
 class TokenERC20Contract extends Contract {
     /**
@@ -450,9 +450,9 @@ class TokenERC20Contract extends Contract {
 
     async addAddress(ctx: Context, address: string) {
 
-        if(!ethers.utils.isAddress(address)){
-            throw new Error ("El formato del address no esta bien")
-        }
+        // if(!ethers.utils.isAddress(address)){
+        //     throw new Error ("El formato del address no esta bien")
+        // }
 
         const user = ctx.clientIdentity.getID()
 

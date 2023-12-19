@@ -67,6 +67,27 @@ class HyperledgerService {
         );
     }
 
+    static async getAdminIdentity() {
+        // Asumiendo que el nombre de usuario del admin y su MSP ID están en la configuración
+        const adminUser = _.get(this.networkConfig, `organizations.${config.mspID}.users.${config.hlfUser}`);
+        const userCertificate = _.get(adminUser, "cert.pem");
+        const userKey = _.get(adminUser, "key.pem");
+
+        if (!userCertificate || !userKey) {
+            throw new Error(`Admin user ${config.hlfUser} not found in network configuration`);
+        }
+
+        console.log("Admin logged in for TokenERC20Contract functions")
+
+        return {
+            mspId: config.mspID,
+            credentials: {
+                certificate: userCertificate,
+                privateKey: userKey
+            }
+        };
+    }
+
     static getPeerDetails() {
         const peerName = Object.keys(this.networkConfig.peers)[0]; // Asume el primer peer
         const peer = this.networkConfig.peers[peerName];

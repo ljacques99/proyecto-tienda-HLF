@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwtUtils';
 import { connectGateway } from '../utils/gatewayUtils';
+import { jwtDecode } from 'jwt-decode';
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
@@ -10,10 +11,10 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
         }
 
         const token = authHeader.split(' ')[0]; // [1] if Auth = Bearer eYJhb....
-        const decoded = verifyToken(token);
-        // const decoded = jwtDecode(token)
+        //const decoded = verifyToken(token);
+        const decoded = jwtDecode(token)
 
-        if (!decoded || !decoded.walletAddress) {
+        if (!decoded) {
             return res.status(401).send('Invalid token');
         }
 

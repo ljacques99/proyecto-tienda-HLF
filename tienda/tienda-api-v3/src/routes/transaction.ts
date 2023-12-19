@@ -1,5 +1,6 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import TransactionService from '../services/TransactionService';
+import EthereumService from '../services/EthereumService';
 
 const router = Router();
 

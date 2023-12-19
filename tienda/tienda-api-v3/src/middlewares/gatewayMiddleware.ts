@@ -5,13 +5,15 @@ import { connectGateway } from '../utils/gatewayUtils';
 export async function gatewayMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
         const contractNameHeader = req.headers['x-contract-name'] as string;
+        const isAdminHeader = req.headers['x-admin'] as string
         
         if (!contractNameHeader) {
             return res.status(400).send('Contract name is required');
         }
 
-        (req as any).contract = await connectGateway(req.user.username, contractNameHeader)
+        const isAdmin = isAdminHeader === 'true';
 
+        (req as any).contract = await connectGateway(req.user.username, contractNameHeader, isAdmin)
         next()
 
     } catch (error) {
