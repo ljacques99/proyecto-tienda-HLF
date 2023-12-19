@@ -11,10 +11,11 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
+    "@metamask/detect-provider": "^2.0.0",
     "autoprefixer": "^10.4.16",
     "base64url": "^3.0.1",
     "buffer": "^6.0.3",
-    "ethers": "^6.9.0",
+    "ethers": "^5.7.2",
     "jwt-decode": "^4.0.0",
     "localforage": "^1.10.0",
     "postcss": "^8.4.32",

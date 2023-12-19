@@ -1,4 +1,5 @@
 import { addInvoice } from "../hlfApi/Invoices/addInvoice"
+import { Transfer } from "../hlfApi/token/transfer";
 
 export const checkOut = async (productos, verifyToken) => {
     // Agrupar productos por merchantId
@@ -19,6 +20,8 @@ export const checkOut = async (productos, verifyToken) => {
 
         try {
             await addInvoice(merchantId, lineasString, verifyToken);
+            const total = lineas.reduce((acc, prod) => acc + parseInt(prod.price) * parseInt(prod.quantity), 0)
+            await Transfer(merchantId, total.toString(), verifyToken)
         } catch (error) {
             console.error('Error al procesar la factura para el comerciante:', merchantId, error);
         }
