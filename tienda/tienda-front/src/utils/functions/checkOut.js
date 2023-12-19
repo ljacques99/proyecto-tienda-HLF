@@ -11,7 +11,7 @@ export const checkOut = async (productos, verifyToken) => {
     for (const merchantId in productosPorMerchant) {
         const lineas = productosPorMerchant[merchantId].map(producto => ({
             productId: producto.id,
-            quantity: 1,
+            quantity: producto.quantity,
             price: producto.priceInt
         }));
 

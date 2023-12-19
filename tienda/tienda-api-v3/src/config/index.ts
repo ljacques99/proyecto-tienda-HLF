@@ -5,6 +5,14 @@ export interface Config {
     mspID: string;
     hlfUser: string;
     networkConfigPath: string;
+    providerURL: string;
+    chainId: number;
+    contractAddressPath: string;
+    abiFilePath: string;
+    ownerFilePath: string;
+    ownerPrivateKey: string;
+    contractAddress: string;
+    bridgeContractPath: string;
 }
 
 export const config: Config = {
@@ -14,6 +22,14 @@ export const config: Config = {
     mspID: process.env.MSP_ID || '',
     hlfUser: process.env.HLF_USER || '',
     networkConfigPath: process.env.NETWORK_CONFIG_PATH || '',
+    providerURL: process.env.PROVIDER_URL || '',
+    chainId: parseInt(process.env.CHAIN_ID || '0'),
+    contractAddressPath: process.env.CONTRACT_ADDRESS_PATH || '',
+    abiFilePath: process.env.ABI_FILE_PATH || '',
+    ownerFilePath: process.env.OWNER_FILE_PATH || '',
+    ownerPrivateKey: process.env.OWNER_PRIVATE_KEY || '',
+    contractAddress: process.env.BRIDGE_ADDRESS || '',
+    bridgeContractPath: process.env.BRIDGE_CONTRACT_PATH || ''
 }
 
 export function checkConfig() {
@@ -23,7 +39,12 @@ export function checkConfig() {
         'chaincodeName',
         'mspID',
         'hlfUser',
-        'networkConfigPath'
+        'networkConfigPath',
+        'providerURL',
+        'chainId',
+        'providerURL',
+        'bridgeContractPath',
+        'ownerPrivateKey'
     ];
 
     for (const key of requiredConfigs) {

@@ -2,12 +2,12 @@ const Notification = ({ message, imageUrl, onClose }) => {
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50">
         <div className="relative border border-gray-200 rounded-lg shadow-lg bg-white">
-          <button
+          {/* <button
             onClick={onClose}
             className="absolute p-1 bg-gray-100 border border-gray-300 rounded-full -top-1 -right-1"
-          >
+          > */}
             {/* SVG icon */}
-          </button>
+          {/* </button> */}
   
           <div className="flex items-center p-4">
             <img

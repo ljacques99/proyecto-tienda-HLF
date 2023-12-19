@@ -5,6 +5,8 @@ import logoStore from '../../assets/logo/logoStore.svg';
 import logOnIcon from '../../assets/icons/loginOn.png';
 import logOffIcon from '../../assets/icons/loginOff.png';
 import logoBasket from '../../assets/icons/logoBasket.png'
+import logoCesta from '../../assets/icons/logocesta2.png'
+import logoWallet from '../../assets/icons/logowallet.png'
 
 const ClientNavbar = () => {
   const navigate = useNavigate();
@@ -32,28 +34,42 @@ const ClientNavbar = () => {
   return (
     <nav className="flex items-center justify-between bg-white p-4"> 
       {/* Sección Izquierda (Espacio vacío si no hay usuario) */}
-      {user && (
-        <div className="flex items-center gap-4">
-          <div 
-            className="cursor-pointer font-bold ml-4 pr-1 pl-1" 
-            onClick={() => navigate('/store/products')}>
-            PRODUCTS
+      {user ? (
+        <div className="flex-1 justify-start flex-1 gap-4">
+        <div 
+          className="cursor-pointer font-bold ml-4 pr-1 pl-1" 
+          onClick={() => navigate('/store/products')}>
+          PRODUCTS
+        </div>
+        </div>
+      ) : (
+        <div className="flex-1 justify-start flex-1 gap-4">
+          <div>
           </div>
         </div>
       )}
 
       {/* Sección Central (Logo) */}
-      <div onClick={() => navigate('/store')} className="cursor-pointer mx-auto pr-4 pl-4">
+      {/* <div onClick={() => navigate('/store')} className="flex justify-center cursor-pointer flex-grw-0 pr-4 pl-4">
+        <img src={logoStore} alt="LedgerProducts Logo" className="h-20 w-auto" />
+      </div> */}
+      <div onClick={() => navigate('/store')} className="content-center cursor-pointer flex-grw-0 pr-4 pl-4">
         <img src={logoStore} alt="LedgerProducts Logo" className="h-20 w-auto" />
       </div>
 
       {/* Sección Derecha (Cesta o Login) */}
+      <div className="flex-1 justify-end flex">
       {user ? (
         <div className="flex items-center gap-4 mr-4">
+           <div 
+            className="cursor-pointer font-bold pr-1 pl-1" 
+            onClick={() => navigate('/store/MATIC-LTK')}>
+              <img className="w-8 h-8" src={logoWallet} alt="Wallet" />
+          </div>
           <div 
             className="cursor-pointer font-bold pr-1 pl-1" 
             onClick={() => navigate('/store/basket')}>
-              <img className="w-8 h-8" src={logoBasket} alt="Cesta" />
+              <img className="w-8 h-8" src={logoCesta} alt="Cesta" />
           </div>
           <div className="relative" ref={dropdownRef}>
             <button 
@@ -90,10 +106,18 @@ const ClientNavbar = () => {
         </div>
         
       ) : (
-        <div className="cursor-pointer" onClick={() => navigate(`/store/login`)}>
+        <div className="flex items-center gap-4 mr-4">
+           <div className="pr-1 pl-1">
+          </div>
+          <div className="pr-1 pl-1">
+          </div>
+          <div className="cursor-pointer" onClick={() => navigate(`/store/login`)}>
           <img src={logOffIcon} alt="Login" className="h-10 w-auto pr-1 pl-1" />
         </div>
+        </div>
+        
       )}
+      </div>
     </nav>
   );
 };

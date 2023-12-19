@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
     const updateIdentity = async () => {
       if (!authState.token || authState.userIdentity) return;
       const identity = await getMyIdentity(authState.userType, authState.token);
+      if (!identity) return
       setAuthState(prevState => ({
         ...prevState,
         userIdentity: identity.id.toString()
@@ -35,9 +36,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, [isIdentityLoading, authState.token, authState.userType, authState.userIdentity]);
 
-  // useEffect(() => {
-  //   console.log(authState); // Esto se ejecutará después de que authState se haya actualizado.
-  // }, [authState]);
+  useEffect(() => {
+    console.log(authState.token); // Esto se ejecutará después de que authState se haya actualizado.
+  }, [authState]);
 
   useEffect(() => {
     const verifyJWT = async () => {

@@ -11,3 +11,5 @@ tienda/tienda-api/node_modules
 tienda/tienda-api2/node_modules
 tienda/tienda-api-v3/node_modules
 tienda/tienda-api2/WALLETS
+tienda/tienda-sol/privatekey.txt
+tienda/tienda-sol/contract-details.json

@@ -1,5 +1,5 @@
 import authRoutes from './auth';
 import transactionRoutes from './transaction';
-// import userRoutes from './user';
+import smartContractRoutes from './smartContract'
 
-export { authRoutes, transactionRoutes };
+export { authRoutes, transactionRoutes, smartContractRoutes };

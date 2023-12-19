@@ -42,7 +42,7 @@ export async function newConnectOptions(
 
 
 // Función principal para conectar al Gateway y obtener un contrato
-export async function connectGateway(username: string) {
+export async function connectGateway(username: string, contractName: string) {
     try {
         // Obtener detalles del peer y CA desde HyperledgerService
         const { peerEndpoint, tlsRootCert } = HyperledgerService.getPeerDetails();
@@ -52,6 +52,7 @@ export async function connectGateway(username: string) {
         const userIdentity = await UserIdentityService.getUserIdentity(username);
 
         if (!userIdentity) throw ('This user needs to reenroll')
+        if (!contractName) throw ('The contract needs to be provided')
 
         const connectOptions = await newConnectOptions(
             grpcConn,
@@ -64,7 +65,7 @@ export async function connectGateway(username: string) {
 
         // Obtener el contrato del canal especificado
         const network = gateway.getNetwork(HyperledgerService.getChannelName());
-        const contract = network.getContract(HyperledgerService.getChaincodeName());
+        const contract = network.getContract(HyperledgerService.getChaincodeName(), contractName);
         return contract;
     } catch (error) {
         console.error('Error connecting to Gateway:', error);

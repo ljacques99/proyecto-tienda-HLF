@@ -17,7 +17,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
             return res.status(401).send('Invalid token');
         }
 
-        (req as any).contract = await connectGateway(decoded.username)
+        req.user = decoded
 
         next()
 

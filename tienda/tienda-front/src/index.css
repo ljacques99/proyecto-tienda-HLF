@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* En src/assets/fonts/MyCustomFont.css o en tu archivo CSS principal */
+@font-face {
+    font-family: 'sequel-100-black';
+    src: url('./assets/fonts/sequel-100-black-85.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  

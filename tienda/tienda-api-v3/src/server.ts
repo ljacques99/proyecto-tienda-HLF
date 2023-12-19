@@ -1,10 +1,11 @@
 import express from "express";
 import { config, checkConfig } from './config';
 import HyperledgerService from './services/HyperledgerService';
-import { authRoutes, transactionRoutes } from './routes';
+import { authRoutes, transactionRoutes, smartContractRoutes } from './routes';
 import cookieParser from 'cookie-parser';
 import cors from "cors";
 import { authMiddleware } from './middlewares/authMiddleware';
+import { gatewayMiddleware } from './middlewares/gatewayMiddleware'
 
 async function main() {
     checkConfig();
@@ -17,10 +18,8 @@ async function main() {
 
     // middleware con un Bearer que solo el Server conoce propio JWT
     app.use('/auth', authRoutes);
-
-    app.use(authMiddleware)
-
-    app.use('/tx', transactionRoutes);
+    app.use('/smartcontract', authMiddleware, smartContractRoutes);
+    app.use('/tx', authMiddleware, gatewayMiddleware, transactionRoutes);
 
     const server = app.listen(
         {

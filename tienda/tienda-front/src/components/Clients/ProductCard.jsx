@@ -29,14 +29,14 @@ const ProductCard = ({ product }) => {
           </p>
           
         </div>
-        <button className="mt-4 w-full text-white bg-brandTwo hover:bg-opacity-75 focus:ring-4 focus:outline-none focus:ring-brandTwo font-medium rounded-lg text-sm px-5 py-2.5 text-center" onClick={handleAddToBasket}>
+        <button className="mt-4 w-full text-white bg-brandTwo hover:bg-opacity-75 focus:ring-0 focus:outline-none focus:ring-brandTwo font-medium rounded-lg text-sm px-5 py-2.5 text-center" onClick={handleAddToBasket}>
           Añadir a la cesta
         </button>
 
 
       {showNotification && (
         <Notification
-          message="Product deleted"
+          message="Producto añadido a la cesta"
           imageUrl={product.imageURL}
           onClose={() => setShowNotification(false)}
         />

@@ -13,7 +13,7 @@ const encodePayload = (payload) => {
   return base64url.encode(JSON.stringify(payload));
 };
 
-// Función para firmar el mensaje (esto es solo un placeholder)
+// Función para firmar el mensaje 
 const signMessage = async (walletAddress, params) => {
   const { ethereum } = window;
 

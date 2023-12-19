@@ -11,9 +11,13 @@ const Products = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      try {
       const products = await getProductList(token);
       setProducts(products);
       setIsLoading(false)
+      } catch (err) {
+        console.log("Error loading products: ", err)
+      }
     };
 
     fetchProducts();

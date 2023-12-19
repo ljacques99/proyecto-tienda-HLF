@@ -24,6 +24,8 @@ import BusinessLayout from "./components/BusinessLayout";
 import BusinessProducts from "./routes/Merchants/Products"
 import BusinessInvoices from "./routes/Merchants/Invoices"
 
+import BridgeForm from "./routes/BridgeForm";
+
 // Crear un enrutador
 const router = createBrowserRouter([
   {
@@ -97,7 +99,15 @@ const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <ProtectedRoute userTypeRequired="client"><ClientInvoices /></ProtectedRoute>
-      }
+      },
+      {
+        path: 'LTK-MATIC',
+        element: <ProtectedRoute userTypeRequired="client"><BridgeForm isLTKtoMATIC={true} /></ProtectedRoute>
+      },
+      {
+        path: 'MATIC-LTK',
+        element: <ProtectedRoute userTypeRequired="client"><BridgeForm isLTKtoMATIC={false} /></ProtectedRoute>
+      },
     ]
   }
 ]);

@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+
 export default {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}"
@@ -15,6 +16,8 @@ export default {
       fontFamily: {
         // Asegúrate de incluir la fuente en tu proyecto o importarla desde una fuente externa
         'elegant': ['Poppins', 'sans-serif'],
+        'custom': ['sequel-100-black', 'sans-serif']
+        
       },
       // ... otras personalizaciones
     },
