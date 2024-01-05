@@ -1,0 +1,24 @@
+version: '3'
+services:
+  couchserver:
+    image: couchdb
+    restart: always
+    container_name: wallets-hlf
+    ports:
+      - "5984:5984"
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+    volumes:
+        - ./dbdata:/opt/couchdb/data
+  couchserver-org2:
+    image: couchdb
+    restart: always
+    container_name: wallets-hlf2
+    ports:
+      - "5985:5984"
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+    volumes:
+        - ./dbdata2:/opt/couchdb/data

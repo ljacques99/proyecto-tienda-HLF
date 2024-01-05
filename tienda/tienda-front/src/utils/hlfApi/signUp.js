@@ -1,7 +1,9 @@
 // Registrer a user in the HLF Organization
 export const verifyAddressAuthority = async (userType, formData) => {
     try {
+      console.log("userType", userType, "formData", formData)
       const BASE_URL = userType === 'business' ? 'http://localhost:3003' : 'http://localhost:3004';
+      console.log('baseurl', BASE_URL)
       const response = await fetch(`${BASE_URL}/auth/wallet`, {
         method: 'POST',
         headers: {

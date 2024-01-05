@@ -23,8 +23,8 @@ const log = new Logger({ name: "tienda-api" })
 const tiendaContractName= "TiendaContract"
 const tokenContractName="TokenERC20Contract"
 
-const providerURL="https://polygon-mainnet.g.alchemy.com/v2/jJpIVW9X0Ic72jgP73wsziBejAhvsH-o" //address of the connection to the network where solidity smart contract is deployed
-const chainId = 137 // chain ID of network of smart contract
+const providerURL="https://rpc-mumbai.maticvigil.com/" //address of the connection to the network where solidity smart contract is deployed
+const chainId = 80001 // chain ID of network of smart contract
 
 const contractFilePath = "../tienda-sol/contract-address.txt"
 const ABIFile = "../tienda-sol/contract.abi"
@@ -133,7 +133,7 @@ async function main() {
             const respuestaBuffer = await contract.evaluateTransaction("getBurnAmount", ...(req.body.args || []));
             const respuesta = JSON.parse(Buffer.from(respuestaBuffer).toString())
             console.log("respuesta", respuesta)
-            const amount = Number(respuesta.amount)
+            const amount = BigInt(respuesta.amount)
 
 
             console.log("amount to withdraw", amount)
@@ -191,6 +191,7 @@ async function main() {
       `);
         }
     );
+
 
 }
 

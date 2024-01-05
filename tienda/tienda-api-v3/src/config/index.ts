@@ -9,10 +9,7 @@ export interface Config {
     chainId: number;
     contractAddressPath: string;
     abiFilePath: string;
-    ownerFilePath: string;
-    ownerPrivateKey: string;
-    contractAddress: string;
-    bridgeContractPath: string;
+    ownerFilePath: string
 }
 
 export const config: Config = {
@@ -26,10 +23,7 @@ export const config: Config = {
     chainId: parseInt(process.env.CHAIN_ID || '0'),
     contractAddressPath: process.env.CONTRACT_ADDRESS_PATH || '',
     abiFilePath: process.env.ABI_FILE_PATH || '',
-    ownerFilePath: process.env.OWNER_FILE_PATH || '',
-    ownerPrivateKey: process.env.OWNER_PRIVATE_KEY || '',
-    contractAddress: process.env.BRIDGE_ADDRESS || '',
-    bridgeContractPath: process.env.BRIDGE_CONTRACT_PATH || ''
+    ownerFilePath: process.env.OWNER_FILE_PATH || ''
 }
 
 export function checkConfig() {
@@ -42,9 +36,8 @@ export function checkConfig() {
         'networkConfigPath',
         'providerURL',
         'chainId',
-        'providerURL',
-        'bridgeContractPath',
-        'ownerPrivateKey'
+        'contractAddressPath',
+        'providerURL'
     ];
 
     for (const key of requiredConfigs) {

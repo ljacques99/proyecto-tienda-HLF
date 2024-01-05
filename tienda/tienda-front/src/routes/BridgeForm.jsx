@@ -6,7 +6,7 @@ import refreshIcon from '../assets/icons/refresh-icon.svg';
 import swapIcon from '../assets/icons/swap-icon.svg';
 import ltkIcon from '../assets/icons/ltk-icon.svg';
 import maticIcon from '../assets/icons/matic-icon.svg';
-import bridgeFooter from '../assets/images/bridgeFooter.png'
+import bridgeFooter from '../assets/images/bridgefooter.png'
 import detectEthereumProvider from '@metamask/detect-provider'
 
 import { formatPrice, priceFormat } from '../utils/functions/formatPrice';

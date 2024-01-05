@@ -17,12 +17,12 @@ router.post('/bridge/:walletAddress', async (req: Request, res: Response) => {
             res.send(transaction)
             return
         }
-        if (signerType === 'owner') {
+        /* if (signerType === 'owner') {
             // Manejar el método del contrato con el signerOwner
             result = await EthereumService.handleSmartContractMethod(method, args);
             result = ethers.formatEther(result);    
             res.send(result);
-        }
+        } */
     } catch (error) {
         console.log(error)
         res.status(400).send(error.message);

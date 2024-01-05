@@ -2,7 +2,7 @@ import { useContext, useState, useEffect } from 'react';
 import AuthContext from '../../context/AuthContext';
 import { getMerchant } from '../../utils/hlfApi/chaincode/Merchant/getMerchant';
 import { addMerchant } from '../../utils/hlfApi/chaincode/Merchant/addMerchant';
-import adminProfile from '../../assets/images/adminProfile.png'
+import adminProfile from '../../assets/images/adminprofile.png'
 import LoadingCard from '../../components/LoadingCard'
 
 const backProfile = "https://cutewallpaper.org/27/black-white-mountain-wallpaper/1023518377.jpg"

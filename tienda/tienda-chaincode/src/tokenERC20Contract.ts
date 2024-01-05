@@ -25,14 +25,14 @@ const totalSupplyKey = 'totalSupply';
 const fs = require('fs')
 const ethers = require('ethers')
 
-const contractAddress = "0x3D4C55E604ac26bf3081d9797d3AD4655F8476b2" //fs.readFileSync("../tienda-sol-hardhat/smart-contracts").toString()
-const providerURL = "https://polygon-mainnet.g.alchemy.com/v2/jJpIVW9X0Ic72jgP73wsziBejAhvsH-o" //https://rpc-mumbai.maticvigil.com/"
+const contractAddress = fs.readFileSync("../tienda-sol/contract-address.txt").toString()
+const providerURL = "https://rpc-mumbai.maticvigil.com/" //https://rpc-mumbai.maticvigil.com/"
 
 const conversionRate = 1000 // number of tokens per ethers
 const conversionRateCent = conversionRate*100
 
 
-const ABI = JSON.parse(fs.readFileSync("../tienda-sol-hardhat/bridge.abi").toString())
+const ABI = JSON.parse(fs.readFileSync("../tienda-sol/contract.abi").toString())
 
 class TokenERC20Contract extends Contract {
     /**
@@ -401,6 +401,7 @@ class TokenERC20Contract extends Contract {
             amountInt = await contract.getTx(address, nonce).then(res => Math.trunc(Number(ethers.utils.formatEther(res))*conversionRateCent))
             //console.log('amount in big', amount)
         } catch (e) {
+            console.log("erreur", e.message)
             throw new Error('Unable to find matching deposit')
         }
 

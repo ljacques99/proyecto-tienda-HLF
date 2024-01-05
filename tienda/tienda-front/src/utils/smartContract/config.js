@@ -1,5 +1,5 @@
 export const smartContractAPI = async (walletAddress, formData, verifyToken) => {
-    const BASE_URL = 'http://localhost:3005'
+    const BASE_URL = 'http://localhost:3004'
 
     const address = !walletAddress ? "007" : walletAddress
     

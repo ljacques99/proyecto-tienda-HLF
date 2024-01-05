@@ -2,22 +2,22 @@ import { ethers } from 'ethers';
 import { config } from '../config';
 import { promises as fs } from 'fs';
 
-interface SmartContractJson {
+/* interface SmartContractJson {
     name: string;
     address: string,
     abi: any[]
-}
+} */
 
 export class BridgeUtils {
     private static abi: any[];
     private static contractAddress: string;
-    private static bridgeContract: SmartContractJson
+    //private static bridgeContract: SmartContractJson
 
     static async initialize() {
-        const contracts = JSON.parse(await fs.readFile(config.bridgeContractPath, 'utf8'));
-        BridgeUtils.bridgeContract = contracts.find((contract: any) => contract.name === 'Bridge');
-        BridgeUtils.abi = BridgeUtils.bridgeContract.abi;
-        BridgeUtils.contractAddress = BridgeUtils.bridgeContract.address;
+        //const contracts = JSON.parse(await fs.readFile(config.bridgeContractPath, 'utf8'));
+        //BridgeUtils.bridgeContract = contracts.find((contract: any) => contract.name === 'Bridge');
+        BridgeUtils.abi = JSON.parse(await fs.readFile(config.abiFilePath, 'utf8'));
+        BridgeUtils.contractAddress = Buffer.from(await fs.readFile(config.contractAddressPath)).toString();
     }
 
     public static async sendTx(signer: ethers.Signer, methodName: string, args?: any[], overrides?: any) {
@@ -47,9 +47,9 @@ export class BridgeUtils {
         return transaction;
     }
 
-    static async changeCommission(signer: ethers.Signer, newCommission: number) {
+    /* static async changeCommission(signer: ethers.Signer, newCommission: number) {
         return await BridgeUtils.sendTx(signer, 'changeCommission', [newCommission]);
-    }
+    } */
 
     static async commission(signer: ethers.Signer) {
         return await BridgeUtils.sendTx(signer, 'commission');
@@ -76,18 +76,18 @@ export class BridgeUtils {
         return await BridgeUtils.sendTx(signer, 'getTx', [sender, txNumber]);
     }
     
-    static async payFees(signer: ethers.Signer) {        
+    /* static async payFees(signer: ethers.Signer) {        
         return await BridgeUtils.sendTx(signer, 'payFees');
-    }
+    } */
     
     static async totalBalance(signer: ethers.Signer) {        
         return await BridgeUtils.sendTx(signer, 'totalBalance');
     }
     
-    static async withdraw(signer: ethers.Signer, amount: string, to: ethers.AddressLike, overrides?: any) {
+    /* static async withdraw(signer: ethers.Signer, amount: string, to: ethers.AddressLike, overrides?: any) {
         const amountParsed = ethers.parseEther(amount.toString());        
         return await BridgeUtils.sendTx(signer, 'withdraw', [amountParsed, to], overrides || []);
-    }
+    } */
 }
 
 export default BridgeUtils;

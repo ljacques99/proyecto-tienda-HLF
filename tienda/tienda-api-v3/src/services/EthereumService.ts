@@ -13,7 +13,7 @@ class EthereumService {
 
     private async initialize() {
         this.provider = new ethers.JsonRpcProvider(config.providerURL);
-        this.signerOwner = new ethers.Wallet(config.ownerPrivateKey, this.provider);
+        //this.signerOwner = new ethers.Wallet(config.ownerPrivateKey, this.provider);
         await BridgeUtils.initialize();
     }
 
@@ -21,10 +21,10 @@ class EthereumService {
         return BridgeUtils.prepareTransactionData(methodName, methodArgs, userAddress);
     }
 
-    public async handleSmartContractMethod(method: string, args: any[]) {
+    /* public async handleSmartContractMethod(method: string, args: any[]) {
         const signer = this.signerOwner
         return BridgeUtils.sendTx(signer, method, ...args || []);
-    }
+    } */
 
     public async getTransactionDetails(signedTransaction: string, signer: ethers.Signer): Promise<ethers.TransactionReceipt> {
         const tx = await this.provider.getTransaction(signedTransaction);

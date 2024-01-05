@@ -2,6 +2,8 @@
 
 Este API expone via HTTP las operaciones que se pueden realizar sobre el chaincode NFT.
 
+ docker-compose up -d
+
 ## Instalar librerias
 ```bash
 npm install

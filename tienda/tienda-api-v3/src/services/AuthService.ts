@@ -15,11 +15,13 @@ class AuthService {
     }
 
     static async signUpWithWallet(username: string, email: string, walletAddress: string) {
+        console.log("point25")
         const identityService = HyperledgerService.getIdentityService();
         const registrar = HyperledgerService.getRegistrar();
 
         try {
             const identityFound = await identityService.getOne(username, registrar);
+            console.log("point34", identityFound)
             if (identityFound) {
                 return { error: "Username already taken" };
             }            

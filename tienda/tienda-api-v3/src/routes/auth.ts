@@ -6,6 +6,7 @@ const router = Router();
 
 router.post('/wallet', async (req: Request, res: Response) => {
     try {
+        console.log("body", req.body)
         const { walletAddress } = req.body;
         const result = await AuthService.verifyAddressAuthority(walletAddress);
         res.send(result);
@@ -16,6 +17,7 @@ router.post('/wallet', async (req: Request, res: Response) => {
 
 router.post('/signup', verifyAddressMiddleware, async (req: Request, res: Response) => {
     try {
+        console.log("point13")
         const { username, email, walletAddress } = req.body;
         const result = await AuthService.signUpWithWallet(username, email, walletAddress);
         res.send(result);
